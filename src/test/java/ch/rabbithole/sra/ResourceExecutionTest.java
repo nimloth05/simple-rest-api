@@ -87,8 +87,29 @@ public final class ResourceExecutionTest {
     assertEquals("\"gandalf\"", out.getBuffer().toString());
   }
 
+  @Test
+  public void testQueryParamWithPrimitiveValueWithLong() throws NoSuchMethodException {
+    ParameterMap map = new ParameterMap();
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParamWithLong", long.class), map);
+    Map<String, String> queryParamMap = new HashMap<>();
+    queryParamMap.put("param1", "100");
+    when(requestMock.getParameterMap()).thenReturn(queryParamMap);
+
+    resource.execute(requestMock, responseMock);
+    assertEquals("\"100\"", out.getBuffer().toString());
+  }
+
+  @Test
+  public void testReturnPrimitiveValueLong() throws NoSuchMethodException {
+    ParameterMap map = new ParameterMap();
+    ResourceExecution resource = createResourceExecution(getMethod("getLongValue"), map);
+
+    resource.execute(requestMock, responseMock);
+    assertEquals("200", out.getBuffer().toString());
+  }
+
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
-    return new ResourceExecution(new Resource(method), new SimpleObjectInstantiator(), map);
+    return new ResourceExecution(new Resource(method), new SimpleObjectObjectFactory(), map);
   }
 
   private Method getMethod(final String methodName, final Class...paramTypes) throws NoSuchMethodException {
@@ -125,6 +146,16 @@ public final class ResourceExecutionTest {
     @GET
     public String getWithParam3(@QueryParam("param1") QueryParamValue value) {
       return value.name;
+    }
+
+    @GET
+    public String getWithParamWithLong(@QueryParam("param1") long value) {
+      return Long.toString(value);
+    }
+
+    @GET
+    public long getLongValue() {
+      return 200;
     }
   }
 

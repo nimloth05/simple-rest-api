@@ -3,7 +3,7 @@ package ch.rabbithole.sra;
 /**
  * TODO JavaDoc
  */
-public interface Instantiator {
+public interface ObjectFactory {
 
   Object createInstance(Class<?> clazz);
 

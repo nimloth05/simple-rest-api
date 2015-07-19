@@ -49,7 +49,7 @@ public final class ResourceManager {
     }
 
     Resource resource = tree.getResource(verb);
-    return new ResourceExecution(resource, new SimpleObjectInstantiator(), map);
+    return new ResourceExecution(resource, new SimpleObjectObjectFactory(), map);
   }
 
   private String getSubPath(final Method resourceMethod) {

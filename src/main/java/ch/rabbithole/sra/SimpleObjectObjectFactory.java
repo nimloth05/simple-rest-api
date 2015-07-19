@@ -3,7 +3,7 @@ package ch.rabbithole.sra;
 /**
  * TODO JavaDoc
  */
-public final class SimpleObjectInstantiator implements Instantiator {
+public final class SimpleObjectObjectFactory implements ObjectFactory {
 
   @Override
   public Object createInstance(final Class<?> clazz) {

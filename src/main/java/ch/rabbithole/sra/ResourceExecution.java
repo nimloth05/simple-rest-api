@@ -2,8 +2,6 @@ package ch.rabbithole.sra;
 
 import com.google.gson.Gson;
 
-import sun.invoke.anon.AnonymousClassLoader;
-
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
@@ -15,18 +13,18 @@ import javax.ws.rs.QueryParam;
 public final class ResourceExecution {
 
   private final Resource resource;
-  private final Instantiator instantiator;
+  private final ObjectFactory objectFactory;
   private final ParameterMap parameterMap;
 
-  public ResourceExecution(final Resource resource, final Instantiator instantiator, final ParameterMap parameterMap) {
+  public ResourceExecution(final Resource resource, final ObjectFactory objectFactory, final ParameterMap parameterMap) {
     this.resource = resource;
-    this.instantiator = instantiator;
+    this.objectFactory = objectFactory;
     this.parameterMap = parameterMap;
   }
 
   public void execute(final HttpServletRequest req, final HttpServletResponse resp) {
     Class<?> declaringClass = resource.getMethod().getDeclaringClass();
-    Object instance = instantiator.createInstance(declaringClass);
+    Object instance = objectFactory.createInstance(declaringClass);
 
     Object[] params = buildMethodParams(req.getParameterMap());
 
