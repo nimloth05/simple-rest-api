@@ -19,8 +19,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public final class ResourceExecutionTest {
@@ -108,11 +111,27 @@ public final class ResourceExecutionTest {
     assertEquals("200", out.getBuffer().toString());
   }
 
+  @Test
+  public void testWebApplicationExceptionHandling() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getWebApplicationException"), new ParameterMap());
+
+    resource.execute(requestMock, responseMock);
+    verify(responseMock).setStatus(HttpServletResponse.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void testExceptionGeneratesAnInternalServerError() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getException"), new ParameterMap());
+
+    resource.execute(requestMock, responseMock);
+    verify(responseMock).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+  }
+
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
     return new ResourceExecution(new Resource(method), new SimpleObjectObjectFactory(), map);
   }
 
-  private Method getMethod(final String methodName, final Class...paramTypes) throws NoSuchMethodException {
+  private Method getMethod(final String methodName, final Class... paramTypes) throws NoSuchMethodException {
     return ResourceClass.class.getMethod(methodName, paramTypes);
   }
 
@@ -157,9 +176,20 @@ public final class ResourceExecutionTest {
     public long getLongValue() {
       return 200;
     }
+
+    @GET
+    public long getWebApplicationException() {
+      throw new WebApplicationException(HttpServletResponse.SC_NOT_FOUND);
+    }
+
+    @GET
+    public long getException() {
+      throw new RuntimeException("Error");
+    }
   }
 
   public static class QueryParamValue {
+
     public String name;
   }
 

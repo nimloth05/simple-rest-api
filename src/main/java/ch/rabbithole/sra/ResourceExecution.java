@@ -2,13 +2,16 @@ package ch.rabbithole.sra;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 
 public final class ResourceExecution {
 
@@ -31,9 +34,31 @@ public final class ResourceExecution {
     try {
       Object invoke = resource.getMethod().invoke(instance, params);
       String response = convertToJson(invoke);
-      resp.getWriter().print(response);
-    } catch (Exception e) {
+      writeAnswer(resp, response);
+    } catch (InvocationTargetException e) {
+      handleError(resp, e.getCause());
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Method must be public: " + resource.getMethod());
+    }
+  }
 
+  private void handleError(final HttpServletResponse resp, final Throwable e) {
+
+    if (e instanceof  WebApplicationException) {
+      WebApplicationException webE = (WebApplicationException) e;
+      resp.setStatus(webE.getResponse().getStatus());
+      writeAnswer(resp, webE.getMessage());
+    } else {
+      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      writeAnswer(resp, e.getMessage());
+    }
+  }
+
+  private void writeAnswer(final HttpServletResponse response, final String responseMessage) {
+    try {
+      response.getWriter().print(responseMessage);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -59,7 +84,6 @@ public final class ResourceExecution {
         QueryParam pathParam = (QueryParam) annotation;
         final String paramName = pathParam.value();
         return convertToObject(requestParameterMap.get(paramName).toString(), parameterType);
-
       }
     }
     return null;
