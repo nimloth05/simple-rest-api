@@ -26,13 +26,13 @@ public final class ResponseImpl extends Response {
   private URI uri;
   private Date expire;
 
-  protected ResponseImpl(final RuntimeDelegateImpl.ResponseBuilderImpl impl) {
+  protected ResponseImpl(final ResponseBuilderImpl impl) {
     status = impl.getStatus();
     entity = impl.getEntity();
     lastModified = impl.getLastModified();
     encoding = impl.getEncoding();
     language = impl.getLanguage();
-    mediaType = impl.getMediaType();
+    metadata = impl.getMetadata();
     uri = impl.getUri();
     expire = impl.getExpire();
 

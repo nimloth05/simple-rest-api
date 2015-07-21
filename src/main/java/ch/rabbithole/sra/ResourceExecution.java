@@ -12,6 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.RuntimeDelegate;
 
 public final class ResourceExecution {
 
@@ -31,32 +35,53 @@ public final class ResourceExecution {
 
     Object[] params = buildMethodParams(req.getParameterMap());
 
+    Response response = executeResourceMethod(resp, instance, params);
+    writeAnswer(resp, response);
+  }
+
+  private Response executeResourceMethod(final HttpServletResponse resp, final Object instance, final Object[] params) {
     try {
-      Object invoke = resource.getMethod().invoke(instance, params);
-      String response = convertToJson(invoke);
-      writeAnswer(resp, response);
+      Object resultObject = resource.getMethod().invoke(instance, params);
+      return buildResponseObject(resultObject);
     } catch (InvocationTargetException e) {
-      handleError(resp, e.getCause());
+      return handleError(e.getCause());
     } catch (IllegalAccessException e) {
       throw new RuntimeException("Method must be public: " + resource.getMethod());
     }
   }
 
-  private void handleError(final HttpServletResponse resp, final Throwable e) {
-
-    if (e instanceof  WebApplicationException) {
-      WebApplicationException webE = (WebApplicationException) e;
-      resp.setStatus(webE.getResponse().getStatus());
-      writeAnswer(resp, webE.getMessage());
-    } else {
-      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      writeAnswer(resp, e.getMessage());
-    }
+  private Response buildResponseObject(final Object resultObject) {
+    return RuntimeDelegate.getInstance().createResponseBuilder()
+        .entity(convertToJson(resultObject))
+        .status(HttpServletResponse.SC_OK)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .build();
   }
 
-  private void writeAnswer(final HttpServletResponse response, final String responseMessage) {
+  private Response handleError(final Throwable e) {
+
+    if (e instanceof WebApplicationException) {
+      WebApplicationException webE = (WebApplicationException) e;
+      return webE.getResponse();
+    }
+    return RuntimeDelegate.getInstance().createResponseBuilder()
+        .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+        .entity(e.toString())
+        .type(MediaType.TEXT_PLAIN_TYPE)
+        .build();
+  }
+
+  private void writeAnswer(final HttpServletResponse servletResponse, final Response response) {
     try {
-      response.getWriter().print(responseMessage);
+      final String entityMessage = (String)response.getEntity();
+
+      servletResponse.getWriter().print(entityMessage);
+      servletResponse.setStatus(response.getStatus());
+      Object contentType = response.getMetadata().getFirst(HttpHeaders.CONTENT_TYPE);
+      if (contentType != null) {
+        servletResponse.setContentType(contentType.toString());
+      }
+
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
