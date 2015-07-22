@@ -20,4 +20,9 @@ public final class Resource implements ResourceNode {
   public Method getMethod() {
     return method;
   }
+
+  @Override
+  public String toString() {
+    return method.getName();
+  }
 }

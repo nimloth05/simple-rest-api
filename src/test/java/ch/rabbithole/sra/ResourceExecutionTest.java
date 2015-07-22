@@ -20,9 +20,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
@@ -49,7 +51,7 @@ public final class ResourceExecutionTest {
   public void testResourceExecution() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod("getSomething"), new ParameterMap());
     resource.execute(requestMock, responseMock);
-    assertEquals("\"something\"", out.getBuffer().toString());
+    assertBufferContent("\"something\"");
   }
 
   @Test
@@ -57,7 +59,7 @@ public final class ResourceExecutionTest {
     ResourceExecution resource = createResourceExecution(getComplexMethod(), new ParameterMap());
 
     resource.execute(requestMock, responseMock);
-    assertEquals("[\"1\",\"2\"]", out.getBuffer().toString());
+    assertBufferContent("[\"1\",\"2\"]");
   }
 
   @Test
@@ -66,7 +68,7 @@ public final class ResourceExecutionTest {
     map.addParameter("id", "anId");
     ResourceExecution resource = createResourceExecution(getMethod("getWithParam", String.class), map);
     resource.execute(requestMock, responseMock);
-    assertEquals("\"anId\"", out.getBuffer().toString());
+    assertBufferContent("\"anId\"");
   }
 
   @Test
@@ -79,7 +81,7 @@ public final class ResourceExecutionTest {
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
 
     resource.execute(requestMock, responseMock);
-    assertEquals("\"value2\"", out.getBuffer().toString());
+    assertBufferContent("\"value2\"");
   }
 
   @Test
@@ -91,7 +93,7 @@ public final class ResourceExecutionTest {
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
 
     resource.execute(requestMock, responseMock);
-    assertEquals("\"gandalf\"", out.getBuffer().toString());
+    assertBufferContent("\"gandalf\"");
   }
 
   @Test
@@ -103,7 +105,7 @@ public final class ResourceExecutionTest {
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
 
     resource.execute(requestMock, responseMock);
-    assertEquals("\"100\"", out.getBuffer().toString());
+    assertBufferContent("\"100\"");
   }
 
   @Test
@@ -112,7 +114,11 @@ public final class ResourceExecutionTest {
     ResourceExecution resource = createResourceExecution(getMethod("getLongValue"), map);
 
     resource.execute(requestMock, responseMock);
-    assertEquals("200", out.getBuffer().toString());
+    assertBufferContent("200");
+  }
+
+  private void assertBufferContent(final String expected) {
+    assertEquals(expected, out.getBuffer().toString());
   }
 
   @Test
@@ -138,6 +144,16 @@ public final class ResourceExecutionTest {
     resource.execute(requestMock, responseMock);
     verify(responseMock).setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
     verify(responseMock).setHeader(HttpHeaders.LOCATION, "http://www.example.com");
+  }
+
+  @Test
+  public void testMediaTypeText() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getMediaTypeText"), new ParameterMap());
+
+    resource.execute(requestMock, responseMock);
+    verify(responseMock).setStatus(HttpServletResponse.SC_OK);
+    verify(responseMock).setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
+    assertBufferContent("Hallo Welt");
   }
 
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
@@ -203,6 +219,12 @@ public final class ResourceExecutionTest {
     @GET
     public Response getRedirectResponse() throws URISyntaxException {
       return Response.temporaryRedirect(new URI("http://www.example.com")).build();
+    }
+
+    @GET
+    @Produces("text/plain")
+    public String getMediaTypeText() throws URISyntaxException {
+      return "Hallo Welt";
     }
   }
 

@@ -3,17 +3,17 @@ package ch.rabbithole.sra;
 import com.google.gson.Gson;
 
 import com.sun.ws.rs.ext.ResponseImpl;
-import com.sun.xml.internal.ws.api.wsdl.parser.MetaDataResolver;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
@@ -59,11 +59,35 @@ public final class ResourceExecution {
   }
 
   private Response buildResponseObject(final Object resultObject) {
-    return RuntimeDelegate.getInstance().createResponseBuilder()
-        .entity(convertToJson(resultObject))
-        .status(HttpServletResponse.SC_OK)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .build();
+    Response.ResponseBuilder responseBuilder = RuntimeDelegate.getInstance().createResponseBuilder()
+        .status(HttpServletResponse.SC_OK);
+
+    Produces annotation = resource.getMethod().getAnnotation(Produces.class);
+    if (annotation != null) {
+      String[] mediaTypes = annotation.value();
+      if (mediaTypes.length > 1) {
+        throw new IllegalArgumentException("Only one type of response is supported. Found: " + Arrays.toString(mediaTypes) + " in resource: " + resource);
+      }
+      String mediaType = mediaTypes[0];
+      if (MediaType.APPLICATION_JSON.equals(mediaType)) {
+        responseBuilder
+            .entity(convertToJson(resultObject))
+            .type(MediaType.APPLICATION_JSON_TYPE);
+      } else if (MediaType.TEXT_PLAIN.equals(mediaType)) {
+        responseBuilder
+            .entity(resultObject.toString())
+            .type(MediaType.TEXT_PLAIN_TYPE);
+      } else {
+        throw new IllegalArgumentException("Not supported media type: " + mediaType + " in resource " + resource);
+      }
+    } else {
+      //assume json
+      responseBuilder
+          .entity(convertToJson(resultObject))
+          .type(MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    return responseBuilder.build();
   }
 
   private Response handleError(final Throwable e) {
