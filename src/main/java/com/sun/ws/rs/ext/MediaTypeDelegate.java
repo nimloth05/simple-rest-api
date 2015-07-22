@@ -10,8 +10,8 @@ public final class MediaTypeDelegate implements RuntimeDelegate.HeaderDelegate<M
 
   @Override
   public MediaType fromString(final String value) throws IllegalArgumentException {
-    String[] split = value.split("/");
-    return new MediaType(split[0], split[1]);
+    com.google.common.net.MediaType parse = com.google.common.net.MediaType.parse(value);
+    return new MediaType(parse.type(), parse.subtype());
   }
 
   @Override

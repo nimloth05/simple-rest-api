@@ -79,13 +79,12 @@ public final class ResponseImpl extends Response {
     return entity;
   }
 
-
   @Override
   public MultivaluedMap<String, Object> getMetadata() {
     return metadata;
   }
 
-  private List<String> toListOfStrings(List<Object> values) {
+  public static List<String> toListOfStrings(List<Object> values) {
     if (values == null) {
       return null;
     } else {

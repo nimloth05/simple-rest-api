@@ -115,7 +115,8 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
 
   @Override
   public Response.ResponseBuilder location(final URI uri) {
-    throw new RuntimeException("TBI");
+    header(HttpHeaders.LOCATION, uri.toString());
+    return this;
   }
 
   @Override

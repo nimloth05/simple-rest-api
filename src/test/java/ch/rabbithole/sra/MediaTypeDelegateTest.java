@@ -9,9 +9,6 @@ import javax.ws.rs.core.MediaType;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * TODO JavaDoc
- */
 public final class MediaTypeDelegateTest {
 
   private MediaTypeDelegate delegate;

@@ -3,7 +3,6 @@ package com.sun.ws.rs.ext;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +11,7 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * TODO JavaDoc
+ * Implementation of the {@link MultivaluedMap} interface.
  */
 public final class MultiValueMapImpl<K, V> implements MultivaluedMap<K, V> {
 
@@ -33,10 +32,6 @@ public final class MultiValueMapImpl<K, V> implements MultivaluedMap<K, V> {
     List<V> vs = backingMap.get(key);
     return vs.isEmpty() ? null : vs.get(0);
   }
-
-
-
-
 
   @Override
   public int size() {

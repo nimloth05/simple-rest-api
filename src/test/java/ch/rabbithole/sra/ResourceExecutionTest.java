@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -127,6 +131,15 @@ public final class ResourceExecutionTest {
     verify(responseMock).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
   }
 
+  @Test
+  public void testGerResponseFromMethod() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getRedirectResponse"), new ParameterMap());
+
+    resource.execute(requestMock, responseMock);
+    verify(responseMock).setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+    verify(responseMock).setHeader(HttpHeaders.LOCATION, "http://www.example.com");
+  }
+
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
     return new ResourceExecution(new Resource(method), new SimpleObjectObjectFactory(), map);
   }
@@ -185,6 +198,11 @@ public final class ResourceExecutionTest {
     @GET
     public long getException() {
       throw new RuntimeException("Error");
+    }
+
+    @GET
+    public Response getRedirectResponse() throws URISyntaxException {
+      return Response.temporaryRedirect(new URI("http://www.example.com")).build();
     }
   }
 

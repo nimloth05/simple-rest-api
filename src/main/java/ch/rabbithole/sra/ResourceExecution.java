@@ -2,9 +2,13 @@ package ch.rabbithole.sra;
 
 import com.google.gson.Gson;
 
+import com.sun.ws.rs.ext.ResponseImpl;
+import com.sun.xml.internal.ws.api.wsdl.parser.MetaDataResolver;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.RuntimeDelegate;
 
@@ -42,6 +47,9 @@ public final class ResourceExecution {
   private Response executeResourceMethod(final HttpServletResponse resp, final Object instance, final Object[] params) {
     try {
       Object resultObject = resource.getMethod().invoke(instance, params);
+      if (resultObject instanceof Response) {
+        return (Response) resultObject;
+      }
       return buildResponseObject(resultObject);
     } catch (InvocationTargetException e) {
       return handleError(e.getCause());
@@ -73,7 +81,7 @@ public final class ResourceExecution {
 
   private void writeAnswer(final HttpServletResponse servletResponse, final Response response) {
     try {
-      final String entityMessage = (String)response.getEntity();
+      final String entityMessage = (String) response.getEntity();
 
       servletResponse.getWriter().print(entityMessage);
       servletResponse.setStatus(response.getStatus());
@@ -82,6 +90,12 @@ public final class ResourceExecution {
         servletResponse.setContentType(contentType.toString());
       }
 
+      MultivaluedMap<String, Object> metadata = response.getMetadata();
+      if (metadata != null) {
+        for (String s : metadata.keySet()) {
+          servletResponse.setHeader(s, ResponseImpl.getHeaderString(ResponseImpl.toListOfStrings(metadata.get(s))));
+        }
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
