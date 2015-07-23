@@ -1,9 +1,11 @@
-package ch.rabbithole.sra;
+package ch.rabbithole.sra.resource;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import ch.rabbithole.sra.HttpVerb;
 
 /**
  * TODO JavaDoc

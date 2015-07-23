@@ -1,4 +1,4 @@
-package ch.rabbithole.sra;
+package ch.rabbithole.sra.resource;
 
 /**
  * TODO JavaDoc

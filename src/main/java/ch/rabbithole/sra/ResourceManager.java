@@ -6,6 +6,14 @@ import java.util.Map;
 
 import javax.ws.rs.Path;
 
+import ch.rabbithole.sra.resource.ConstructorObjectFactory;
+import ch.rabbithole.sra.resource.ParameterMap;
+import ch.rabbithole.sra.resource.Resource;
+import ch.rabbithole.sra.resource.ResourceExecution;
+import ch.rabbithole.sra.resource.ResourceNode;
+import ch.rabbithole.sra.resource.ResourcePath;
+import ch.rabbithole.sra.resource.ResourceTree;
+
 /**
  * Manages all the available resources in a tree like structure.
  */
@@ -49,7 +57,7 @@ public final class ResourceManager {
     }
 
     Resource resource = tree.getResource(verb);
-    return new ResourceExecution(resource, new SimpleObjectObjectFactory(), map);
+    return new ResourceExecution(resource, new ConstructorObjectFactory(), map);
   }
 
   private String getSubPath(final Method resourceMethod) {

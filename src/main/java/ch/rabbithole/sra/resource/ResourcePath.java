@@ -1,6 +1,4 @@
-package ch.rabbithole.sra;
-
-import sun.awt.SunGraphicsCallback;
+package ch.rabbithole.sra.resource;
 
 /**
  *

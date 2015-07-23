@@ -1,4 +1,4 @@
-package ch.rabbithole.sra;
+package ch.rabbithole.sra.resource;
 
 import com.google.gson.Gson;
 
@@ -40,11 +40,11 @@ public final class ResourceExecution {
 
     Object[] params = buildMethodParams(req.getParameterMap());
 
-    Response response = executeResourceMethod(resp, instance, params);
+    Response response = executeResourceMethod(instance, params);
     writeAnswer(resp, response);
   }
 
-  private Response executeResourceMethod(final HttpServletResponse resp, final Object instance, final Object[] params) {
+  private Response executeResourceMethod(final Object instance, final Object[] params) {
     try {
       Object resultObject = resource.getMethod().invoke(instance, params);
       if (resultObject instanceof Response) {

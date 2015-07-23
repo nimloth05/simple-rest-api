@@ -2,7 +2,7 @@ package ch.rabbithole.sra;
 
 import org.junit.Test;
 
-import sun.awt.SunGraphicsCallback;
+import ch.rabbithole.sra.resource.ResourcePath;
 
 import static org.junit.Assert.*;
 

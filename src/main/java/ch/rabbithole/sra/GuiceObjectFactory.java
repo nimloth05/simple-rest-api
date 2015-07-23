@@ -2,6 +2,8 @@ package ch.rabbithole.sra;
 
 import com.google.inject.Injector;
 
+import ch.rabbithole.sra.resource.ObjectFactory;
+
 /**
  * Object factory for guice.
  */

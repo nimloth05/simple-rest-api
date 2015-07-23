@@ -27,6 +27,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import ch.rabbithole.sra.resource.ConstructorObjectFactory;
+import ch.rabbithole.sra.resource.ParameterMap;
+import ch.rabbithole.sra.resource.Resource;
+import ch.rabbithole.sra.resource.ResourceExecution;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
@@ -157,7 +162,7 @@ public final class ResourceExecutionTest {
   }
 
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
-    return new ResourceExecution(new Resource(method), new SimpleObjectObjectFactory(), map);
+    return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), map);
   }
 
   private Method getMethod(final String methodName, final Class... paramTypes) throws NoSuchMethodException {

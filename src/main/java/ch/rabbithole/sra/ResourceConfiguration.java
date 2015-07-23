@@ -3,6 +3,9 @@ package ch.rabbithole.sra;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.rabbithole.sra.resource.ResourceExecution;
+import ch.rabbithole.sra.resource.ResourcePath;
+
 /**
  * Class containing the configuration of all the REST Api resources
  */
