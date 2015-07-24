@@ -14,6 +14,7 @@ import ch.rabbithole.sra.resource.ResourcePath;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public final class ResourceManagerTest {
 
@@ -97,6 +98,14 @@ public final class ResourceManagerTest {
     assertEquals("subPathWithMultipleIds", getResource.getMethodName());
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testNotMatchingResource() {
+    resourceManager.addResource(TestResource.class);
+
+    ResourcePath getPath = ResourcePath.parse("/a/b/fail/path/");
+     resourceManager.getResource(getPath, HttpVerb.GET, new ConstructorObjectFactory());
+  }
+
   @Path("/a/b")
   private static class TestResource {
 
@@ -115,7 +124,6 @@ public final class ResourceManagerTest {
     public String subResource() {
       return "";
     }
-
 
     @GET
     @Path("{id}")

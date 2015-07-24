@@ -1,5 +1,8 @@
 package ch.rabbithole.sra;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -42,19 +45,26 @@ public final class ResourceManager {
     }
   }
 
+  @NotNull
   public ResourceExecution getResource(ResourcePath path, HttpVerb verb, final ObjectFactory factory) {
     ResourceTree tree = rootTree;
     ParameterMap map = new ParameterMap();
-    ResourceNode node = getNode(path, verb, tree, map);
-    return new ResourceExecution((Resource) node, factory, map);
+    Resource node = getNode(path, verb, tree, map);
+
+    if (node == null) {
+      throw new IllegalArgumentException("Resource not found for path: " + path + "/" + verb);
+    }
+
+    return new ResourceExecution(node, factory, map);
   }
 
-  private ResourceNode getNode(final ResourcePath path, final HttpVerb verb, final ResourceTree tree, final ParameterMap map) {
+  @Nullable
+  private Resource getNode(final ResourcePath path, final HttpVerb verb, final ResourceTree tree, final ParameterMap map) {
+    //We exhausted all possibilities on this sub tree
     if (path == null) {
-      if (tree.getResource(verb) != null) {
-        return tree.getResource(verb);
-      }
-      return null;
+      //it may match
+      //or it may not and the caller has to try another sub tree.
+      return tree.getResource(verb);
     }
 
     ResourceTree subTree = tree.getSubTree(path.getPart());
@@ -65,12 +75,12 @@ public final class ResourceManager {
     for (Map.Entry<String, ResourceNode> treeEntry : tree.getEntries()) {
       final String key = treeEntry.getKey();
       if (key.startsWith("{") && key.endsWith("}")) {
-        ResourceNode subNode = getNode(path.getSubPath(), verb, (ResourceTree) treeEntry.getValue(), map);
+        Resource resource = getNode(path.getSubPath(), verb, (ResourceTree) treeEntry.getValue(), map);
 
-        if (subNode != null) {
+        if (resource != null) {
           final String paramId = key.substring(1, key.length() - 1);
           map.addParameter(paramId, path.getPart());
-          return subNode;
+          return resource;
         }
       }
     }

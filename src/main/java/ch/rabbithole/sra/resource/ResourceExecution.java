@@ -37,7 +37,11 @@ public final class ResourceExecution {
   }
 
   public void execute(final HttpServletRequest req, final HttpServletResponse resp) {
-    Class<?> declaringClass = resource.getMethod().getDeclaringClass();
+    if (resource == null) {
+      throw new IllegalStateException("Resource is empty");
+    }
+
+    Class<?> declaringClass = resource.getDeclaringClass();
     Object instance = objectFactory.createInstance(declaringClass);
 
     Object[] params = buildMethodParams(req.getParameterMap(), req);
@@ -48,7 +52,7 @@ public final class ResourceExecution {
 
   private Response executeResourceMethod(final Object instance, final Object[] params) {
     try {
-      Object resultObject = resource.getMethod().invoke(instance, params);
+      Object resultObject = resource.invoke(instance, params);
       if (resultObject instanceof Response) {
         return (Response) resultObject;
       }
@@ -56,7 +60,7 @@ public final class ResourceExecution {
     } catch (InvocationTargetException e) {
       return handleError(e.getCause());
     } catch (IllegalAccessException e) {
-      throw new RuntimeException("Method must be public: " + resource.getMethod());
+      throw new RuntimeException("Method must be public: " + resource);
     }
   }
 
@@ -64,7 +68,7 @@ public final class ResourceExecution {
     Response.ResponseBuilder responseBuilder = RuntimeDelegate.getInstance().createResponseBuilder()
         .status(HttpServletResponse.SC_OK);
 
-    Produces annotation = resource.getMethod().getAnnotation(Produces.class);
+    Produces annotation = resource.getAnnotation(Produces.class);
     if (annotation != null) {
       String[] mediaTypes = annotation.value();
       if (mediaTypes.length > 1) {
@@ -129,11 +133,11 @@ public final class ResourceExecution {
   }
 
   private Object[] buildMethodParams(final Map parameterMap, final HttpServletRequest request) {
-    Annotation[][] parameterAnnotations = resource.getMethod().getParameterAnnotations();
+    Annotation[][] parameterAnnotations = resource.getParameterAnnotations();
     Object[] result = new Object[parameterAnnotations.length];
     for (int i = 0; i < parameterAnnotations.length; i++) {
       Annotation[] annotations = parameterAnnotations[i];
-      Class<?> aClass = resource.getMethod().getParameterTypes()[i];
+      Class<?> aClass = resource.getParameterTypes(i);
       result[i] = getParameterValue(annotations, parameterMap, aClass, request);
     }
     return result;
@@ -150,14 +154,21 @@ public final class ResourceExecution {
         throw new RuntimeException("Could not parse json argument", e);
       }
       return object;
-
     }
+
     for (Annotation annotation : annotations) {
+      if (annotation.annotationType().equals(Context.class)) {
+        if (HttpServletRequest.class.isAssignableFrom(parameterType)) {
+          return request;
+        }
+      }
+
       if (annotation.annotationType().equals(PathParam.class)) {
         PathParam pathParam = (PathParam) annotation;
         final String paramName = pathParam.value();
         return this.parameterMap.getValue(paramName);
       }
+
       if (annotation.annotationType().equals(QueryParam.class)) {
         QueryParam pathParam = (QueryParam) annotation;
         final String paramName = pathParam.value();
@@ -190,11 +201,6 @@ public final class ResourceExecution {
         return result;
       }
 
-      if (annotation.annotationType().equals(Context.class)) {
-        if (HttpServletRequest.class.isAssignableFrom(parameterType)) {
-          return request;
-        }
-      }
     }
     return null;
   }
