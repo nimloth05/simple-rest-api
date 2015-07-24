@@ -33,10 +33,10 @@ public abstract class DispatchServlet extends HttpServlet {
 
   @Override
   protected void doDelete(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-    super.doDelete(req, resp);
-    if (resp.isCommitted()) {
-      return;
-    }
+//    super.doDelete(req, resp);
+//    if (resp.isCommitted()) {
+//      return;
+//    }
 
     ResourceConfiguration configuration = getConfiguration();
     configuration.executeResource(objectFactory, HttpVerb.DELETE, req, resp);
@@ -44,21 +44,21 @@ public abstract class DispatchServlet extends HttpServlet {
 
   @Override
   protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-    super.doGet(req, resp);
-    if (resp.isCommitted()) {
-      return;
-    }
+//    super.doGet(req, resp);
+//    if (resp.isCommitted()) {
+//      return;
+//    }
 
-    ResourceConfiguration configuration = getConfiguration();
-    configuration.executeResource(objectFactory, HttpVerb.GET, req, resp);
+      ResourceConfiguration configuration = getConfiguration();
+      configuration.executeResource(objectFactory, HttpVerb.GET, req, resp);
   }
 
   @Override
   protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-    super.doPost(req, resp);
-    if (resp.isCommitted()) {
-      return;
-    }
+//    super.doPost(req, resp);
+//    if (resp.isCommitted()) {
+//      return;
+//    }
 
     ResourceConfiguration configuration = getConfiguration();
     configuration.executeResource(objectFactory, HttpVerb.POST, req, resp);
@@ -66,10 +66,10 @@ public abstract class DispatchServlet extends HttpServlet {
 
   @Override
   protected void doPut(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-    super.doPut(req, resp);
-    if (resp.isCommitted()) {
-      return;
-    }
+//    super.doPut(req, resp);
+//    if (resp.isCommitted()) {
+//      return;
+//    }
 
     ResourceConfiguration configuration = getConfiguration();
     configuration.executeResource(objectFactory, HttpVerb.PUT, req, resp);

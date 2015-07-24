@@ -12,10 +12,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -38,7 +40,7 @@ public final class ResourceExecution {
     Class<?> declaringClass = resource.getMethod().getDeclaringClass();
     Object instance = objectFactory.createInstance(declaringClass);
 
-    Object[] params = buildMethodParams(req.getParameterMap());
+    Object[] params = buildMethodParams(req.getParameterMap(), req);
 
     Response response = executeResourceMethod(instance, params);
     writeAnswer(resp, response);
@@ -125,18 +127,18 @@ public final class ResourceExecution {
     }
   }
 
-  private Object[] buildMethodParams(final Map parameterMap) {
+  private Object[] buildMethodParams(final Map parameterMap, final HttpServletRequest request) {
     Annotation[][] parameterAnnotations = resource.getMethod().getParameterAnnotations();
     Object[] result = new Object[parameterAnnotations.length];
     for (int i = 0; i < parameterAnnotations.length; i++) {
       Annotation[] annotations = parameterAnnotations[i];
       Class<?> aClass = resource.getMethod().getParameterTypes()[i];
-      result[i] = getParameterValue(annotations, parameterMap, aClass);
+      result[i] = getParameterValue(annotations, parameterMap, aClass, request);
     }
     return result;
   }
 
-  private Object getParameterValue(final Annotation[] annotations, final Map requestParameterMap, final Class<?> parameterType) {
+  private Object getParameterValue(final Annotation[] annotations, final Map requestParameterMap, final Class<?> parameterType, final HttpServletRequest request) {
     for (Annotation annotation : annotations) {
       if (annotation.annotationType().equals(PathParam.class)) {
         PathParam pathParam = (PathParam) annotation;
@@ -146,7 +148,27 @@ public final class ResourceExecution {
       if (annotation.annotationType().equals(QueryParam.class)) {
         QueryParam pathParam = (QueryParam) annotation;
         final String paramName = pathParam.value();
-        return convertToObject(requestParameterMap.get(paramName).toString(), parameterType);
+        Object o = requestParameterMap.get(paramName);
+        if (o == null) {
+          for (Annotation annotation1 : annotations) {
+            if (annotation1.annotationType().equals(DefaultValue.class)) {
+              DefaultValue defaultValue = (DefaultValue) annotation1;
+              o = defaultValue.value();
+              break;
+            }
+          }
+        }
+        //FIXME Use java default according to the parameter type
+        if (o == null) {
+          throw new RuntimeException("No QueryParam and no default value specified");
+        }
+        return convertToObject(o.toString(), parameterType);
+      }
+
+      if (annotation.annotationType().equals(Context.class)) {
+        if (HttpServletRequest.class.isAssignableFrom(parameterType)) {
+          return request;
+        }
       }
     }
     return null;

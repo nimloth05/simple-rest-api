@@ -54,4 +54,10 @@ public final class ResourcePathTest {
     assertEquals(newPath.getSubPath().getSubPath().getPart(), "c");
   }
 
+  @Test
+  public void testToString() {
+    ResourcePath path = ResourcePath.parse("a/b");
+    assertEquals("a/b", path.toString());
+  }
+
 }

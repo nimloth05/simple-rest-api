@@ -51,9 +51,8 @@ public final class ResourcePath {
     return new ResourcePath(part, this.subPath != null ? this.subPath.append(pathToAppend) : pathToAppend);
   }
 
-  public static ResourcePath getLast(final ResourcePath root) {
-    ResourcePath result = root;
-    while (result.getSubPath() != null) result = result.getSubPath();
-    return result;
+  @Override
+  public String toString() {
+    return part + (subPath != null ? "/" + subPath : "");
   }
 }

@@ -17,12 +17,14 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -161,6 +163,22 @@ public final class ResourceExecutionTest {
     assertBufferContent("Hallo Welt");
   }
 
+  @Test
+  public void testGetWithContext() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getWithContext", HttpServletRequest.class), new ParameterMap());
+
+    resource.execute(requestMock, responseMock);
+    assertBufferContent("true");
+  }
+
+  @Test
+  public void testGetQueryParamWithDefault() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithDefault", long.class), new ParameterMap());
+
+    resource.execute(requestMock, responseMock);
+    assertBufferContent("1");
+  }
+
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
     return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), map);
   }
@@ -207,6 +225,13 @@ public final class ResourceExecutionTest {
     }
 
     @GET
+    @Path("queryParamWithDefault")
+    @Produces("text/plain")
+    public String getQueryParamWithDefault(@QueryParam("param1") @DefaultValue("1") long value) {
+      return Long.toString(value);
+    }
+
+    @GET
     public long getLongValue() {
       return 200;
     }
@@ -230,6 +255,12 @@ public final class ResourceExecutionTest {
     @Produces("text/plain")
     public String getMediaTypeText() throws URISyntaxException {
       return "Hallo Welt";
+    }
+
+    @GET
+    @Path("getContext")
+    public boolean getWithContext(@Context HttpServletRequest request) {
+      return request != null;
     }
   }
 

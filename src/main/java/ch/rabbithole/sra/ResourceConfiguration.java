@@ -31,6 +31,10 @@ public final class ResourceConfiguration {
   public void executeResource(final ObjectFactory factory, final HttpVerb verb, final HttpServletRequest req, final HttpServletResponse resp) {
     ResourcePath path = ResourcePath.parse(req.getPathInfo());
     ResourceExecution resourceExecution = resources.getResource(path, verb, factory);
-    resourceExecution.execute(req, resp);
+    try {
+      resourceExecution.execute(req, resp);
+    }catch (Exception e) {
+      throw new RuntimeException("Error during resource execution: " + path, e);
+    }
   }
 }
