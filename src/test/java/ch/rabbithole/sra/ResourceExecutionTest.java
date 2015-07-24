@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.internal.invocation.finder.VerifiableInvocationsFinder;
 
 import java.io.BufferedReader;
 import java.io.IOException;

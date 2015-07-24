@@ -87,6 +87,16 @@ public final class ResourceManagerTest {
     assertEquals("subPutResourceWithId", getResource.getMethodName());
   }
 
+  @Test
+  public void testConsecutivePathIds() {
+    resourceManager.addResource(TestResource.class);
+
+    ResourcePath getPath = ResourcePath.parse("/a/b/subIds/1/2");
+    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET, new ConstructorObjectFactory());
+    assertNotNull(getResource);
+    assertEquals("subPathWithMultipleIds", getResource.getMethodName());
+  }
+
   @Path("/a/b")
   private static class TestResource {
 
@@ -117,6 +127,12 @@ public final class ResourceManagerTest {
     @Path("{id}")
     public void subPutResourceWithId(@PathParam("id") String id) {
       assertEquals("1", id);
+    }
+
+    @GET
+    @Path("/subIds/{id}/{id2}")
+    public String subPathWithMultipleIds(@PathParam("id") String id1) {
+      return id1;
     }
 
   }

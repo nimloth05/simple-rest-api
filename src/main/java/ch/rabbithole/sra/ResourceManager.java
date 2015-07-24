@@ -44,47 +44,42 @@ public final class ResourceManager {
 
   public ResourceExecution getResource(ResourcePath path, HttpVerb verb, final ObjectFactory factory) {
     ResourceTree tree = rootTree;
-
     ParameterMap map = new ParameterMap();
+    ResourceNode node = getNode(path, verb, tree, map);
+    return new ResourceExecution((Resource) node, factory, map);
+  }
 
-    while (path != null) {
-      ResourceTree newTree = tree.getSubTree(path.getPart());
-      if (newTree == null) {
-        newTree = getTreeForParameter(tree, map, path, verb);
+  private ResourceNode getNode(final ResourcePath path, final HttpVerb verb, final ResourceTree tree, final ParameterMap map) {
+    if (path == null) {
+      if (tree.getResource(verb) != null) {
+        return tree.getResource(verb);
       }
-      tree = newTree;
-      path = path.getSubPath();
+      return null;
     }
 
-    Resource resource = tree.getResource(verb);
-    return new ResourceExecution(resource, factory, map);
+    ResourceTree subTree = tree.getSubTree(path.getPart());
+    if (subTree != null) {
+      return getNode(path.getSubPath(), verb, subTree, map);
+    }
+
+    for (Map.Entry<String, ResourceNode> treeEntry : tree.getEntries()) {
+      final String key = treeEntry.getKey();
+      if (key.startsWith("{") && key.endsWith("}")) {
+        ResourceNode subNode = getNode(path.getSubPath(), verb, (ResourceTree) treeEntry.getValue(), map);
+
+        if (subNode != null) {
+          final String paramId = key.substring(1, key.length() - 1);
+          map.addParameter(paramId, path.getPart());
+          return subNode;
+        }
+      }
+    }
+    return null;
   }
 
   private String getSubPath(final Method resourceMethod) {
     Path annotation = resourceMethod.getAnnotation(Path.class);
     return annotation != null ? annotation.value() : "";
-  }
-
-  private ResourceTree getTreeForParameter(final ResourceTree tree, final ParameterMap map, final ResourcePath path, final HttpVerb verb) {
-    for (Map.Entry<String, ResourceNode> entrySet : tree.getEntries()) {
-      if (entrySet.getKey().startsWith("{") && entrySet.getKey().endsWith("}")) {
-
-        ResourceNode node = entrySet.getValue();
-        if (!(node instanceof ResourceTree)) {
-          throw new IllegalStateException("Resource path does not end in a HTTP verb: " + entrySet.getKey());
-        }
-        ResourceTree subTree = (ResourceTree) node;
-        if (!subTree.contains(verb)) {
-          continue;
-        }
-
-        final String key = entrySet.getKey().substring(1, entrySet.getKey().length() - 1);
-        map.addParameter(key, path.getPart());
-
-        return (ResourceTree) entrySet.getValue();
-      }
-    }
-    throw new IllegalArgumentException("No path found");
   }
 
   private ResourceTree addPath(final ResourcePath resourcePath) {

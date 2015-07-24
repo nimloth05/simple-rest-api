@@ -27,6 +27,7 @@ public final class ResourceTree implements ResourceNode {
     return (ResourceTree) treeMap.get(part);
   }
 
+
   public void addResource(final HttpVerb verb, final Resource resource) {
     treeMap.put(verb.name(), resource);
   }
