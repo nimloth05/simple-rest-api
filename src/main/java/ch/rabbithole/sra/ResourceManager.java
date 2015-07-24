@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.ws.rs.Path;
 
 import ch.rabbithole.sra.resource.ConstructorObjectFactory;
+import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.ParameterMap;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
@@ -42,7 +43,7 @@ public final class ResourceManager {
     }
   }
 
-  public ResourceExecution getResource(ResourcePath path, HttpVerb verb) {
+  public ResourceExecution getResource(ResourcePath path, HttpVerb verb, final ObjectFactory factory) {
     ResourceTree tree = rootTree;
 
     ParameterMap map = new ParameterMap();
@@ -57,7 +58,7 @@ public final class ResourceManager {
     }
 
     Resource resource = tree.getResource(verb);
-    return new ResourceExecution(resource, new ConstructorObjectFactory(), map);
+    return new ResourceExecution(resource, factory, map);
   }
 
   private String getSubPath(final Method resourceMethod) {

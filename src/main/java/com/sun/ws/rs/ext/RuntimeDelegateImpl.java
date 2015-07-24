@@ -14,7 +14,7 @@ public final class RuntimeDelegateImpl extends RuntimeDelegate {
 
   @Override
   public UriBuilder createUriBuilder() {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -24,12 +24,12 @@ public final class RuntimeDelegateImpl extends RuntimeDelegate {
 
   @Override
   public Variant.VariantListBuilder createVariantListBuilder() {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public <T> T createEndpoint(final Application application, final Class<T> aClass) throws IllegalArgumentException, UnsupportedOperationException {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override

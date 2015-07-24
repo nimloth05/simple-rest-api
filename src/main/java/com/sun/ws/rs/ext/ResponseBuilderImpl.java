@@ -53,7 +53,7 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
 
   @Override
   public Response.ResponseBuilder cacheControl(final CacheControl cacheControl) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -71,7 +71,7 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
 
   @Override
   public Response.ResponseBuilder language(final Locale locale) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -87,7 +87,7 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
 
   @Override
   public Response.ResponseBuilder variant(final Variant variant) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -98,7 +98,7 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
 
   @Override
   public Response.ResponseBuilder cookie(final NewCookie... newCookies) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -121,17 +121,17 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
 
   @Override
   public Response.ResponseBuilder tag(final EntityTag entityTag) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Response.ResponseBuilder tag(final String s) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Response.ResponseBuilder variants(final List<Variant> list) {
-    throw new RuntimeException("TBI");
+    throw new UnsupportedOperationException();
   }
 
 

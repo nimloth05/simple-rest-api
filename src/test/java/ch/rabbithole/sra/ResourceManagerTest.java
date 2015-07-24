@@ -8,6 +8,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import ch.rabbithole.sra.resource.ConstructorObjectFactory;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourcePath;
 
@@ -27,7 +28,7 @@ public final class ResourceManagerTest {
   public void testsAddResource() {
     resourceManager.addResource(TestResource.class);
     ResourcePath parse = ResourcePath.parse("/a/b/");
-    ResourceExecution resource = resourceManager.getResource(parse, HttpVerb.GET);
+    ResourceExecution resource = resourceManager.getResource(parse, HttpVerb.GET, new ConstructorObjectFactory());
     assertNotNull(resource);
   }
 
@@ -36,7 +37,7 @@ public final class ResourceManagerTest {
     resourceManager.addResource(TestResource.class);
 
     ResourcePath parse = ResourcePath.parse("/a/b");
-    ResourceExecution resource = resourceManager.getResource(parse, HttpVerb.GET);
+    ResourceExecution resource = resourceManager.getResource(parse, HttpVerb.GET, new ConstructorObjectFactory());
     assertNotNull(resource);
     assertEquals("getFoo", resource.getMethodName());
   }
@@ -46,12 +47,12 @@ public final class ResourceManagerTest {
     resourceManager.addResource(TestResource.class);
 
     ResourcePath getPath = ResourcePath.parse("/a/b/");
-    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET);
+    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET, new ConstructorObjectFactory());
     assertNotNull(getResource);
     assertEquals("getFoo", getResource.getMethodName());
 
     ResourcePath putPath = ResourcePath.parse("/a/b/");
-    ResourceExecution resource = resourceManager.getResource(putPath, HttpVerb.PUT);
+    ResourceExecution resource = resourceManager.getResource(putPath, HttpVerb.PUT, new ConstructorObjectFactory());
     assertNotNull(resource);
     assertEquals("putFoo", resource.getMethodName());
   }
@@ -61,7 +62,7 @@ public final class ResourceManagerTest {
     resourceManager.addResource(TestResource.class);
 
     ResourcePath getPath = ResourcePath.parse("/a/b/c/d/");
-    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET);
+    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET, new ConstructorObjectFactory());
     assertNotNull(getResource);
     assertEquals("subResource", getResource.getMethodName());
   }
@@ -71,7 +72,7 @@ public final class ResourceManagerTest {
     resourceManager.addResource(TestResource.class);
 
     ResourcePath getPath = ResourcePath.parse("/a/b/X/");
-    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET);
+    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET, new ConstructorObjectFactory());
     assertNotNull(getResource);
     assertEquals("subResourceWithId", getResource.getMethodName());
   }

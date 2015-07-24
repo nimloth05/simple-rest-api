@@ -3,6 +3,8 @@ package ch.rabbithole.sra;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.rabbithole.sra.resource.ConstructorObjectFactory;
+import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourcePath;
 
@@ -17,9 +19,9 @@ public final class ResourceConfiguration {
     resources.addResource(clazz);
   }
 
-  public void executeResource(final HttpVerb verb, final HttpServletRequest req, final HttpServletResponse resp) {
+  public void executeResource(final ObjectFactory factory, final HttpVerb verb, final HttpServletRequest req, final HttpServletResponse resp) {
     ResourcePath path = ResourcePath.parse(req.getPathInfo());
-    ResourceExecution resourceExecution = resources.getResource(path, verb);
+    ResourceExecution resourceExecution = resources.getResource(path, verb, factory);
     resourceExecution.execute(req, resp);
   }
 }
