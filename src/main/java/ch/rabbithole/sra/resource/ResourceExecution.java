@@ -1,6 +1,8 @@
 package ch.rabbithole.sra.resource;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import com.google.gson.internal.Streams;
 
 import com.sun.ws.rs.ext.ResponseImpl;
 
@@ -139,6 +141,18 @@ public final class ResourceExecution {
   }
 
   private Object getParameterValue(final Annotation[] annotations, final Map requestParameterMap, final Class<?> parameterType, final HttpServletRequest request) {
+    if (annotations.length == 0) {
+      //we assume that an parameter without annotation is passed via request
+      Gson gson = new Gson();
+      Object object;
+      try {
+        object = gson.fromJson(request.getReader(), parameterType);
+      } catch (IOException e) {
+        throw new RuntimeException("Could not parse json argument", e);
+      }
+      return object;
+
+    }
     for (Annotation annotation : annotations) {
       if (annotation.annotationType().equals(PathParam.class)) {
         PathParam pathParam = (PathParam) annotation;

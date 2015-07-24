@@ -1,11 +1,16 @@
 package ch.rabbithole.sra;
 
+import com.google.gson.Gson;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.internal.invocation.finder.VerifiableInvocationsFinder;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -19,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -35,7 +41,6 @@ import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +57,8 @@ public final class ResourceExecutionTest {
     PrintWriter writer = new PrintWriter(out);
     responseMock = Mockito.mock(HttpServletResponse.class);
     when(responseMock.getWriter()).thenReturn(writer);
+
+
   }
 
   @Test
@@ -94,7 +101,7 @@ public final class ResourceExecutionTest {
   @Test
   public void testWithJsonQueryParam() throws NoSuchMethodException {
     ParameterMap map = new ParameterMap();
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", QueryParamValue.class), map);
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", ParamValue.class), map);
     Map<String, String> queryParamMap = new HashMap<>();
     queryParamMap.put("param1", "{'name': gandalf}");
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
@@ -179,6 +186,20 @@ public final class ResourceExecutionTest {
     assertBufferContent("1");
   }
 
+  @Test
+  public void testPutJsonParam() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("putJsonParam", ParamValue.class), new ParameterMap());
+    requestEntityBody(new ParamValue("gandalf"));
+
+    //Resource method contains assertion
+    resource.execute(requestMock, responseMock);
+    try {
+      verify(requestMock).getReader();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
     return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), map);
   }
@@ -189,6 +210,16 @@ public final class ResourceExecutionTest {
 
   private Method getComplexMethod() throws NoSuchMethodException {
     return getMethod("getComplexSomething");
+  }
+
+  private void requestEntityBody(final Object object) {
+    Gson gson = new Gson();
+    String jsonString = gson.toJson(object);
+    try {
+      when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(jsonString)));
+    } catch (Exception e) {
+      //how can a mock crash?
+    }
   }
 
   public static class ResourceClass {
@@ -215,7 +246,7 @@ public final class ResourceExecutionTest {
     }
 
     @GET
-    public String getWithParam3(@QueryParam("param1") QueryParamValue value) {
+    public String getWithParam3(@QueryParam("param1") ParamValue value) {
       return value.name;
     }
 
@@ -262,9 +293,23 @@ public final class ResourceExecutionTest {
     public boolean getWithContext(@Context HttpServletRequest request) {
       return request != null;
     }
+
+    @PUT
+    @Path("putJsonParam")
+    public void putJsonParam(ParamValue param) {
+      assertEquals("gandalf", param.name);
+    }
   }
 
-  public static class QueryParamValue {
+  public static class ParamValue {
+
+    public ParamValue() {
+
+    }
+
+    public ParamValue(final String name) {
+      this.name = name;
+    }
 
     public String name;
   }
