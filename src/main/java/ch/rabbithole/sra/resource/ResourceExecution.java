@@ -1,8 +1,6 @@
 package ch.rabbithole.sra.resource;
 
-import com.google.common.base.Strings;
 import com.google.gson.Gson;
-import com.google.gson.internal.Streams;
 
 import com.sun.ws.rs.ext.ResponseImpl;
 
@@ -72,6 +70,7 @@ public final class ResourceExecution {
       if (mediaTypes.length > 1) {
         throw new IllegalArgumentException("Only one type of response is supported. Found: " + Arrays.toString(mediaTypes) + " in resource: " + resource);
       }
+
       String mediaType = mediaTypes[0];
       if (MediaType.APPLICATION_JSON.equals(mediaType)) {
         responseBuilder
@@ -162,21 +161,33 @@ public final class ResourceExecution {
       if (annotation.annotationType().equals(QueryParam.class)) {
         QueryParam pathParam = (QueryParam) annotation;
         final String paramName = pathParam.value();
-        Object o = requestParameterMap.get(paramName);
-        if (o == null) {
+        String[] values = (String[]) requestParameterMap.get(paramName);
+        Object result = null;
+
+        if (values == null) {
           for (Annotation annotation1 : annotations) {
             if (annotation1.annotationType().equals(DefaultValue.class)) {
               DefaultValue defaultValue = (DefaultValue) annotation1;
-              o = defaultValue.value();
+              result = convertToObject(defaultValue.value(), parameterType);
               break;
             }
           }
+        } else {
+          if (parameterType.equals(String.class)) {
+            result = values[0];
+          } else if (parameterType.equals(String[].class)) {
+            result = values;
+          } else {
+            result = convertToObject(values[0], parameterType);
+          }
         }
+
         //FIXME Use java default according to the parameter type
-        if (o == null) {
+        if (result == null) {
           throw new RuntimeException("No QueryParam and no default value specified");
         }
-        return convertToObject(o.toString(), parameterType);
+
+        return result;
       }
 
       if (annotation.annotationType().equals(Context.class)) {

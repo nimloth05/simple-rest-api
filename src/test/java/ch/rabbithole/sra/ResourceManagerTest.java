@@ -74,7 +74,17 @@ public final class ResourceManagerTest {
     ResourcePath getPath = ResourcePath.parse("/a/b/X/");
     ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.GET, new ConstructorObjectFactory());
     assertNotNull(getResource);
-    assertEquals("subResourceWithId", getResource.getMethodName());
+    assertEquals("subGetResourceWithId", getResource.getMethodName());
+  }
+
+  @Test
+  public void testPathParamWithMultipleVerbs() {
+    resourceManager.addResource(TestResource.class);
+
+    ResourcePath getPath = ResourcePath.parse("/a/b/1");
+    ResourceExecution getResource = resourceManager.getResource(getPath, HttpVerb.PUT, new ConstructorObjectFactory());
+    assertNotNull(getResource);
+    assertEquals("subPutResourceWithId", getResource.getMethodName());
   }
 
   @Path("/a/b")
@@ -96,10 +106,17 @@ public final class ResourceManagerTest {
       return "";
     }
 
+
     @GET
     @Path("{id}")
-    public String subResourceWithId(@PathParam("id") String id) {
+    public String subGetResourceWithId(@PathParam("id") String id) {
       return "";
+    }
+
+    @PUT
+    @Path("{id}")
+    public void subPutResourceWithId(@PathParam("id") String id) {
+      assertEquals("1", id);
     }
 
   }

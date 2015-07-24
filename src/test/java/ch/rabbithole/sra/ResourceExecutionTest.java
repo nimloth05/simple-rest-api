@@ -89,9 +89,9 @@ public final class ResourceExecutionTest {
   public void testQueryParam() throws NoSuchMethodException {
     ParameterMap map = new ParameterMap();
     ResourceExecution resource = createResourceExecution(getMethod("getWithParam2", String.class), map);
-    Map<String, String> queryParamMap = new HashMap<>();
-    queryParamMap.put("param1", "value1");
-    queryParamMap.put("param2", "value2");
+    Map<String, String[]> queryParamMap = new HashMap<>();
+    queryParamMap.put("param1", new String[] {"value1"});
+    queryParamMap.put("param2", new String[] {"value2"});
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
 
     resource.execute(requestMock, responseMock);
@@ -102,8 +102,8 @@ public final class ResourceExecutionTest {
   public void testWithJsonQueryParam() throws NoSuchMethodException {
     ParameterMap map = new ParameterMap();
     ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", ParamValue.class), map);
-    Map<String, String> queryParamMap = new HashMap<>();
-    queryParamMap.put("param1", "{'name': gandalf}");
+    Map<String, String[]> queryParamMap = new HashMap<>();
+    queryParamMap.put("param1", new String[] {"{'name': gandalf}"});
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
 
     resource.execute(requestMock, responseMock);
@@ -114,8 +114,8 @@ public final class ResourceExecutionTest {
   public void testQueryParamWithPrimitiveValueWithLong() throws NoSuchMethodException {
     ParameterMap map = new ParameterMap();
     ResourceExecution resource = createResourceExecution(getMethod("getWithParamWithLong", long.class), map);
-    Map<String, String> queryParamMap = new HashMap<>();
-    queryParamMap.put("param1", "100");
+    Map<String, String[]> queryParamMap = new HashMap<>();
+    queryParamMap.put("param1", new String[] {"100"});
     when(requestMock.getParameterMap()).thenReturn(queryParamMap);
 
     resource.execute(requestMock, responseMock);
@@ -199,6 +199,19 @@ public final class ResourceExecutionTest {
       e.printStackTrace();
     }
   }
+
+  @Test
+  public void testGetQueryParamWithString() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithString", String.class), new ParameterMap());
+
+    Map<String, String[]> queryParamMap = new HashMap<>();
+    queryParamMap.put("q", new String[] {"1"});
+    when(requestMock.getParameterMap()).thenReturn(queryParamMap);
+
+    resource.execute(requestMock, responseMock);
+    assertBufferContent("1");
+  }
+
 
   private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
     return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), map);
@@ -294,11 +307,19 @@ public final class ResourceExecutionTest {
       return request != null;
     }
 
+    @GET
+    @Path("getQueryWithString")
+    @Produces("text/plain")
+    public String getQueryParamWithString(@QueryParam("q") String value) {
+      return value;
+    }
+
     @PUT
     @Path("putJsonParam")
     public void putJsonParam(ParamValue param) {
       assertEquals("gandalf", param.name);
     }
+
   }
 
   public static class ParamValue {

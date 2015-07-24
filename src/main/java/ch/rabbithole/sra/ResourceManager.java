@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.ws.rs.Path;
 
-import ch.rabbithole.sra.resource.ConstructorObjectFactory;
 import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.ParameterMap;
 import ch.rabbithole.sra.resource.Resource;
@@ -51,7 +50,7 @@ public final class ResourceManager {
     while (path != null) {
       ResourceTree newTree = tree.getSubTree(path.getPart());
       if (newTree == null) {
-        newTree = getTreeForParameter(tree, map, path);
+        newTree = getTreeForParameter(tree, map, path, verb);
       }
       tree = newTree;
       path = path.getSubPath();
@@ -66,11 +65,22 @@ public final class ResourceManager {
     return annotation != null ? annotation.value() : "";
   }
 
-  private ResourceTree getTreeForParameter(final ResourceTree tree, final ParameterMap map, final ResourcePath path) {
+  private ResourceTree getTreeForParameter(final ResourceTree tree, final ParameterMap map, final ResourcePath path, final HttpVerb verb) {
     for (Map.Entry<String, ResourceNode> entrySet : tree.getEntries()) {
       if (entrySet.getKey().startsWith("{") && entrySet.getKey().endsWith("}")) {
+
+        ResourceNode node = entrySet.getValue();
+        if (!(node instanceof ResourceTree)) {
+          throw new IllegalStateException("Resource path does not end in a HTTP verb: " + entrySet.getKey());
+        }
+        ResourceTree subTree = (ResourceTree) node;
+        if (!subTree.contains(verb)) {
+          continue;
+        }
+
         final String key = entrySet.getKey().substring(1, entrySet.getKey().length() - 1);
         map.addParameter(key, path.getPart());
+
         return (ResourceTree) entrySet.getValue();
       }
     }

@@ -38,4 +38,8 @@ public final class ResourceTree implements ResourceNode {
   public Collection<Map.Entry<String, ResourceNode>> getEntries() {
     return Collections.unmodifiableCollection(treeMap.entrySet());
   }
+
+  public boolean contains(final HttpVerb verb) {
+    return getResource(verb) != null;
+  }
 }
