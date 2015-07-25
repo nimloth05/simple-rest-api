@@ -21,7 +21,7 @@ public final class ResourceConfiguration {
     return this;
   }
 
-  public final ResourceConfiguration addAll(final Set<Class<?>> classes)  {
+  public final ResourceConfiguration addAll(final Set<Class<?>> classes) {
     for (Class<?> aClass : classes) {
       addClass(aClass);
     }
@@ -30,10 +30,14 @@ public final class ResourceConfiguration {
 
   public void executeResource(final ObjectFactory factory, final HttpVerb verb, final HttpServletRequest req, final HttpServletResponse resp) {
     ResourcePath path = ResourcePath.parse(req.getPathInfo());
-    ResourceExecution resourceExecution = resources.getResource(path, verb, factory);
+    ResourceExecutionBuilder builder = resources.getResource(path, verb);
+
+    ResourceExecution resourceExecution = builder
+        .build(req, resp, factory);
+
     try {
-      resourceExecution.execute(req, resp);
-    }catch (Exception e) {
+      resourceExecution.execute();
+    } catch (Exception e) {
       throw new RuntimeException("Error during resource execution: " + path, e);
     }
   }

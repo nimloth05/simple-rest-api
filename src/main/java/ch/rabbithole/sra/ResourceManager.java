@@ -1,16 +1,20 @@
 package ch.rabbithole.sra;
 
+import com.sun.jersey.api.NotFoundException;
+import com.sun.ws.rs.ext.MultiValueMapImpl;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.PathSegment;
 
-import ch.rabbithole.sra.resource.ObjectFactory;
-import ch.rabbithole.sra.resource.ParameterMap;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourceNode;
@@ -46,40 +50,44 @@ public final class ResourceManager {
   }
 
   @NotNull
-  public ResourceExecution getResource(ResourcePath path, HttpVerb verb, final ObjectFactory factory) {
+  public ResourceExecutionBuilder getResource(ResourcePath path, HttpVerb verb) {
     ResourceTree tree = rootTree;
-    ParameterMap map = new ParameterMap();
-    Resource node = getNode(path, verb, tree, map);
+    MultivaluedMap<String, String> pathParams = new MultiValueMapImpl<>();
+    Resource resource = getNode(path.iterator(), verb, tree, pathParams);
 
-    if (node == null) {
-      throw new IllegalArgumentException("Resource not found for path: " + path + "/" + verb);
+    if (resource == null) {
+      throw new NotFoundException("Resource not found for path: " + path + "/" + verb);
     }
 
-    return new ResourceExecution(node, factory, map);
+    return new ResourceExecutionBuilder()
+        .setPathParams(pathParams)
+        .setResource(resource);
   }
 
   @Nullable
-  private Resource getNode(final ResourcePath path, final HttpVerb verb, final ResourceTree tree, final ParameterMap map) {
+  private Resource getNode(final Iterator<PathSegment> pathIter, final HttpVerb verb, final ResourceTree tree, final MultivaluedMap<String, String> pathParams) {
     //We exhausted all possibilities on this sub tree
-    if (path == null) {
+    if (!pathIter.hasNext()) {
       //it may match
       //or it may not and the caller has to try another sub tree.
       return tree.getResource(verb);
     }
 
-    ResourceTree subTree = tree.getSubTree(path.getPart());
+    PathSegment path = pathIter.next();
+
+    ResourceTree subTree = tree.getSubTree(path.getPath());
     if (subTree != null) {
-      return getNode(path.getSubPath(), verb, subTree, map);
+      return getNode(pathIter, verb, subTree, pathParams);
     }
 
     for (Map.Entry<String, ResourceNode> treeEntry : tree.getEntries()) {
       final String key = treeEntry.getKey();
       if (key.startsWith("{") && key.endsWith("}")) {
-        Resource resource = getNode(path.getSubPath(), verb, (ResourceTree) treeEntry.getValue(), map);
+        Resource resource = getNode(pathIter, verb, (ResourceTree) treeEntry.getValue(), pathParams);
 
         if (resource != null) {
           final String paramId = key.substring(1, key.length() - 1);
-          map.addParameter(paramId, path.getPart());
+          pathParams.putSingle(paramId, path.getPath());
           return resource;
         }
       }
@@ -94,12 +102,10 @@ public final class ResourceManager {
 
   private ResourceTree addPath(final ResourcePath resourcePath) {
     ResourceTree tree = rootTree;
-    ResourcePath subPath = resourcePath;
-    while (subPath != null) {
-      tree = tree.getOrCreateTree(subPath.getPart());
-      subPath = subPath.getSubPath();
-    }
 
+    for (PathSegment pathSegment : resourcePath) {
+      tree = tree.getOrCreateTree(pathSegment.getPath());
+    }
     return tree;
   }
 

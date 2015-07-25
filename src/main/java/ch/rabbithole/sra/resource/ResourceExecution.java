@@ -4,11 +4,14 @@ import com.google.gson.Gson;
 
 import com.sun.ws.rs.ext.ResponseImpl;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,32 +25,61 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.RuntimeDelegate;
+
+import ch.rabbithole.sra.impl.UriInfoImpl;
 
 public final class ResourceExecution {
 
   private final Resource resource;
   private final ObjectFactory objectFactory;
-  private final ParameterMap parameterMap;
+  private UriInfoImpl uriInfoImpl;
+  @NotNull
+  private final HttpServletRequest req;
+  @NotNull
+  private final HttpServletResponse resp;
 
-  public ResourceExecution(final Resource resource, final ObjectFactory objectFactory, final ParameterMap parameterMap) {
+  public ResourceExecution(@NotNull final Resource resource,
+                           @NotNull final ObjectFactory objectFactory,
+                           @NotNull final UriInfoImpl uriInfo,
+                           @NotNull final HttpServletRequest req,
+                           @NotNull final HttpServletResponse resp) {
     this.resource = resource;
     this.objectFactory = objectFactory;
-    this.parameterMap = parameterMap;
+    this.uriInfoImpl = uriInfo;
+    this.req = req;
+    this.resp = resp;
   }
 
-  public void execute(final HttpServletRequest req, final HttpServletResponse resp) {
-    if (resource == null) {
-      throw new IllegalStateException("Resource is empty");
-    }
-
+  public void execute() {
     Class<?> declaringClass = resource.getDeclaringClass();
     Object instance = objectFactory.createInstance(declaringClass);
 
-    Object[] params = buildMethodParams(req.getParameterMap(), req);
+    setContextFields(instance);
+
+    Object[] params = buildMethodParams(uriInfoImpl, req);
 
     Response response = executeResourceMethod(instance, params);
     writeAnswer(resp, response);
+  }
+
+  private void setContextFields(Object instance) {
+    final Field[] fields = instance.getClass().getDeclaredFields();
+    for (Field field : fields) {
+      if (field.getType().equals(UriInfo.class)) {
+        final Annotation[] annotations = field.getAnnotations();
+        for (Annotation annotation : annotations) {
+          if (annotation.annotationType().equals(Context.class)) {
+            try {
+              field.set(instance, uriInfoImpl);
+            } catch (IllegalAccessException e) {
+              throw new RuntimeException("Field does not have sufficient access privileges: " + field, e);
+            }
+          }
+        }
+      }
+    }
   }
 
   private Response executeResourceMethod(final Object instance, final Object[] params) {
@@ -132,18 +164,18 @@ public final class ResourceExecution {
     }
   }
 
-  private Object[] buildMethodParams(final Map parameterMap, final HttpServletRequest request) {
+  private Object[] buildMethodParams(final UriInfoImpl uriInfo, final HttpServletRequest request) {
     Annotation[][] parameterAnnotations = resource.getParameterAnnotations();
     Object[] result = new Object[parameterAnnotations.length];
     for (int i = 0; i < parameterAnnotations.length; i++) {
       Annotation[] annotations = parameterAnnotations[i];
       Class<?> aClass = resource.getParameterTypes(i);
-      result[i] = getParameterValue(annotations, parameterMap, aClass, request);
+      result[i] = getParameterValue(annotations, uriInfo, aClass, request);
     }
     return result;
   }
 
-  private Object getParameterValue(final Annotation[] annotations, final Map requestParameterMap, final Class<?> parameterType, final HttpServletRequest request) {
+  private Object getParameterValue(final Annotation[] annotations, final UriInfoImpl uriInfo, final Class<?> parameterType, final HttpServletRequest request) {
     if (annotations.length == 0) {
       //we assume that an parameter without annotation is passed via request
       Gson gson = new Gson();
@@ -166,16 +198,16 @@ public final class ResourceExecution {
       if (annotation.annotationType().equals(PathParam.class)) {
         PathParam pathParam = (PathParam) annotation;
         final String paramName = pathParam.value();
-        return this.parameterMap.getValue(paramName);
+        return this.uriInfoImpl.getQueryParameters(false).getFirst(paramName);
       }
 
       if (annotation.annotationType().equals(QueryParam.class)) {
         QueryParam pathParam = (QueryParam) annotation;
         final String paramName = pathParam.value();
-        String[] values = (String[]) requestParameterMap.get(paramName);
+        List<String> values = uriInfo.getQueryParameters(false).get(paramName);
         Object result = null;
 
-        if (values == null) {
+        if (values == null || values.isEmpty()) {
           for (Annotation annotation1 : annotations) {
             if (annotation1.annotationType().equals(DefaultValue.class)) {
               DefaultValue defaultValue = (DefaultValue) annotation1;
@@ -185,11 +217,11 @@ public final class ResourceExecution {
           }
         } else {
           if (parameterType.equals(String.class)) {
-            result = values[0];
+            result = values.get(0);
           } else if (parameterType.equals(String[].class)) {
-            result = values;
+            result = values.toArray(new String[values.size()]);
           } else {
-            result = convertToObject(values[0], parameterType);
+            result = convertToObject(values.get(0), parameterType);
           }
         }
 
@@ -214,7 +246,6 @@ public final class ResourceExecution {
     Gson gson = new Gson();
     return gson.fromJson(json, type);
   }
-
 
   public String getMethodName() {
     return resource.getMethodName();

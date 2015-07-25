@@ -3,6 +3,8 @@ package com.sun.ws.rs.ext;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
+import com.sun.org.apache.xml.internal.utils.MutableAttrListImpl;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,16 @@ import javax.ws.rs.core.MultivaluedMap;
 public final class MultiValueMapImpl<K, V> implements MultivaluedMap<K, V> {
 
   private ListMultimap<K, V> backingMap = ArrayListMultimap.create();
+
+  public MultiValueMapImpl() {
+
+  }
+
+  public MultiValueMapImpl(final Map<K, V> source) {
+    for (Map.Entry<K, V> mapEntry : source.entrySet()) {
+      putSingle(mapEntry.getKey(), mapEntry.getValue());
+    }
+  }
 
   @Override
   public void putSingle(final K key, final V value) {

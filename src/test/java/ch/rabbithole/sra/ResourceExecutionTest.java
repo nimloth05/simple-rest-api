@@ -2,6 +2,9 @@ package ch.rabbithole.sra;
 
 import com.google.gson.Gson;
 
+import com.sun.ws.rs.ext.MultiValueMapImpl;
+
+import org.apache.cxf.common.util.UrlUtils.UrlUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -15,6 +18,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +36,15 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
+import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.ConstructorObjectFactory;
-import ch.rabbithole.sra.resource.ParameterMap;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
+import ch.rabbithole.sra.resource.ResourcePath;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -62,71 +69,61 @@ public final class ResourceExecutionTest {
 
   @Test
   public void testResourceExecution() throws NoSuchMethodException, IOException {
-    ResourceExecution resource = createResourceExecution(getMethod("getSomething"), new ParameterMap());
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getSomething"), createEmptyInfo());
+    resource.execute();
     assertBufferContent("\"something\"");
   }
 
   @Test
   public void testConvertObjectToJson() throws NoSuchMethodException, IOException {
-    ResourceExecution resource = createResourceExecution(getComplexMethod(), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getComplexMethod(), createEmptyInfo());
+    resource.execute();
     assertBufferContent("[\"1\",\"2\"]");
   }
 
   @Test
   public void testCallWithResourceArguments() throws NoSuchMethodException {
-    ParameterMap map = new ParameterMap();
-    map.addParameter("id", "anId");
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam", String.class), map);
-    resource.execute(requestMock, responseMock);
+    MultivaluedMap<String, String> map = new MultiValueMapImpl<>();
+    map.putSingle("id", "anId");
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam", String.class), createUriInfoImpl(map));
+    resource.execute();
     assertBufferContent("\"anId\"");
   }
 
   @Test
   public void testQueryParam() throws NoSuchMethodException {
-    ParameterMap map = new ParameterMap();
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam2", String.class), map);
-    Map<String, String[]> queryParamMap = new HashMap<>();
-    queryParamMap.put("param1", new String[] {"value1"});
-    queryParamMap.put("param2", new String[] {"value2"});
-    when(requestMock.getParameterMap()).thenReturn(queryParamMap);
+    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    queryParamMap.putSingle("param1", "value1");
+    queryParamMap.putSingle("param2", "value2");
 
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam2", String.class), createUriInfoImpl(queryParamMap));
+    resource.execute();
     assertBufferContent("\"value2\"");
   }
 
   @Test
   public void testWithJsonQueryParam() throws NoSuchMethodException {
-    ParameterMap map = new ParameterMap();
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", ParamValue.class), map);
-    Map<String, String[]> queryParamMap = new HashMap<>();
-    queryParamMap.put("param1", new String[] {"{'name': gandalf}"});
-    when(requestMock.getParameterMap()).thenReturn(queryParamMap);
-
-    resource.execute(requestMock, responseMock);
+    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    queryParamMap.putSingle("param1", "{'name': gandalf}");
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", ParamValue.class), createUriInfoImpl(queryParamMap));
+    resource.execute();
     assertBufferContent("\"gandalf\"");
   }
 
   @Test
   public void testQueryParamWithPrimitiveValueWithLong() throws NoSuchMethodException {
-    ParameterMap map = new ParameterMap();
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParamWithLong", long.class), map);
-    Map<String, String[]> queryParamMap = new HashMap<>();
-    queryParamMap.put("param1", new String[] {"100"});
-    when(requestMock.getParameterMap()).thenReturn(queryParamMap);
+    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    queryParamMap.putSingle("param1", "100");
 
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParamWithLong", long.class), createUriInfoImpl(queryParamMap));
+    resource.execute();
     assertBufferContent("\"100\"");
   }
 
   @Test
   public void testReturnPrimitiveValueLong() throws NoSuchMethodException {
-    ParameterMap map = new ParameterMap();
-    ResourceExecution resource = createResourceExecution(getMethod("getLongValue"), map);
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getLongValue"), createEmptyInfo());
+    resource.execute();
     assertBufferContent("200");
   }
 
@@ -136,34 +133,30 @@ public final class ResourceExecutionTest {
 
   @Test
   public void testWebApplicationExceptionHandling() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getWebApplicationException"), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getWebApplicationException"), createEmptyInfo());
+    resource.execute();
     verify(responseMock).setStatus(HttpServletResponse.SC_NOT_FOUND);
   }
 
   @Test
   public void testExceptionGeneratesAnInternalServerError() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getException"), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getException"), createEmptyInfo());
+    resource.execute();
     verify(responseMock).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
   }
 
   @Test
   public void testGerResponseFromMethod() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getRedirectResponse"), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getRedirectResponse"), createEmptyInfo());
+    resource.execute();
     verify(responseMock).setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
     verify(responseMock).setHeader(HttpHeaders.LOCATION, "http://www.example.com");
   }
 
   @Test
   public void testMediaTypeText() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getMediaTypeText"), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getMediaTypeText"), createEmptyInfo());
+    resource.execute();
     verify(responseMock).setStatus(HttpServletResponse.SC_OK);
     verify(responseMock).setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
     assertBufferContent("Hallo Welt");
@@ -171,27 +164,25 @@ public final class ResourceExecutionTest {
 
   @Test
   public void testGetWithContext() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getWithContext", HttpServletRequest.class), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getWithContext", HttpServletRequest.class), createEmptyInfo());
+    resource.execute();
     assertBufferContent("true");
   }
 
   @Test
   public void testGetQueryParamWithDefault() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithDefault", long.class), new ParameterMap());
-
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithDefault", long.class), createEmptyInfo());
+    resource.execute();
     assertBufferContent("1");
   }
 
   @Test
   public void testPutJsonParam() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("putJsonParam", ParamValue.class), new ParameterMap());
     requestEntityBody(new ParamValue("gandalf"));
 
     //Resource method contains assertion
-    resource.execute(requestMock, responseMock);
+    ResourceExecution resource = createResourceExecution(getMethod("putJsonParam", ParamValue.class), createEmptyInfo());
+    resource.execute();
     try {
       verify(requestMock).getReader();
     } catch (IOException e) {
@@ -201,19 +192,22 @@ public final class ResourceExecutionTest {
 
   @Test
   public void testGetQueryParamWithString() throws NoSuchMethodException {
-    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithString", String.class), new ParameterMap());
-
-    Map<String, String[]> queryParamMap = new HashMap<>();
-    queryParamMap.put("q", new String[] {"1"});
-    when(requestMock.getParameterMap()).thenReturn(queryParamMap);
-
-    resource.execute(requestMock, responseMock);
+    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    queryParamMap.putSingle("q", "1");
+    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithString", String.class), createUriInfoImpl(queryParamMap));
+    resource.execute();
     assertBufferContent("1");
   }
 
+  @Test
+  public void testContextUriInfo() throws NoSuchMethodException {
+    ResourceExecution resource = createResourceExecution(getMethod("getContextField"), createEmptyInfo());
+    resource.execute();
+    assertBufferContent("true");
+  }
 
-  private ResourceExecution createResourceExecution(final Method method, final ParameterMap map) {
-    return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), map);
+  private ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
+    return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), uriInfo, requestMock, responseMock);
   }
 
   private Method getMethod(final String methodName, final Class... paramTypes) throws NoSuchMethodException {
@@ -234,7 +228,22 @@ public final class ResourceExecutionTest {
     }
   }
 
+  private UriInfoImpl createUriInfoImpl(final MultivaluedMap<String, String> queryParams) {
+    return new UriInfoImpl(ResourcePath.empty(),
+                           ResourcePath.empty(),
+                           ResourcePath.empty(),
+                           queryParams,
+                           new MultiValueMapImpl<String, String>());
+  }
+
+  private UriInfoImpl createEmptyInfo() {
+    return createUriInfoImpl(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
+  }
+
   public static class ResourceClass {
+
+    @Context
+    public UriInfo uriInfo;
 
     @GET
     public String getSomething() {
@@ -319,10 +328,18 @@ public final class ResourceExecutionTest {
       assertEquals("gandalf", param.name);
     }
 
+    @GET
+    @Path("contextText")
+    @Produces("text/plain")
+    public boolean getContextField() {
+      return uriInfo != null;
+    }
+
   }
 
   public static class ParamValue {
 
+    @SuppressWarnings("unused")
     public ParamValue() {
 
     }
