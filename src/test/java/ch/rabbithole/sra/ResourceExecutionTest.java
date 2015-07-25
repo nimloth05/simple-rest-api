@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 
 import com.sun.ws.rs.ext.MultiValueMapImpl;
 
-import org.apache.cxf.common.util.UrlUtils.UrlUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -19,9 +18,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -82,10 +79,10 @@ public final class ResourceExecutionTest {
   }
 
   @Test
-  public void testCallWithResourceArguments() throws NoSuchMethodException {
+  public void testCallWithPathParam() throws NoSuchMethodException {
     MultivaluedMap<String, String> map = new MultiValueMapImpl<>();
     map.putSingle("id", "anId");
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam", String.class), createUriInfoImpl(map));
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam", String.class), createUrlInfoWithPathParams(map));
     resource.execute();
     assertBufferContent("\"anId\"");
   }
@@ -96,7 +93,7 @@ public final class ResourceExecutionTest {
     queryParamMap.putSingle("param1", "value1");
     queryParamMap.putSingle("param2", "value2");
 
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam2", String.class), createUriInfoImpl(queryParamMap));
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam2", String.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
     assertBufferContent("\"value2\"");
   }
@@ -105,7 +102,7 @@ public final class ResourceExecutionTest {
   public void testWithJsonQueryParam() throws NoSuchMethodException {
     MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
     queryParamMap.putSingle("param1", "{'name': gandalf}");
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", ParamValue.class), createUriInfoImpl(queryParamMap));
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParam3", ParamValue.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
     assertBufferContent("\"gandalf\"");
   }
@@ -115,7 +112,7 @@ public final class ResourceExecutionTest {
     MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
     queryParamMap.putSingle("param1", "100");
 
-    ResourceExecution resource = createResourceExecution(getMethod("getWithParamWithLong", long.class), createUriInfoImpl(queryParamMap));
+    ResourceExecution resource = createResourceExecution(getMethod("getWithParamWithLong", long.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
     assertBufferContent("\"100\"");
   }
@@ -194,7 +191,7 @@ public final class ResourceExecutionTest {
   public void testGetQueryParamWithString() throws NoSuchMethodException {
     MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
     queryParamMap.putSingle("q", "1");
-    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithString", String.class), createUriInfoImpl(queryParamMap));
+    ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithString", String.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
     assertBufferContent("1");
   }
@@ -204,6 +201,15 @@ public final class ResourceExecutionTest {
     ResourceExecution resource = createResourceExecution(getMethod("getContextField"), createEmptyInfo());
     resource.execute();
     assertBufferContent("true");
+  }
+
+  @Test
+  public void testPathParamAsLong() throws NoSuchMethodException {
+    MultiValueMapImpl<String, String> params = new MultiValueMapImpl<>();
+    params.putSingle("id", "1");
+    ResourceExecution resource = createResourceExecution(getMethod("pathParamAsLong", long.class), createUrlInfoWithPathParams(params));
+    resource.execute();
+    assertBufferContent("1");
   }
 
   private ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
@@ -228,16 +234,26 @@ public final class ResourceExecutionTest {
     }
   }
 
-  private UriInfoImpl createUriInfoImpl(final MultivaluedMap<String, String> queryParams) {
-    return new UriInfoImpl(ResourcePath.empty(),
+  private UriInfoImpl createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
+    return new UriInfoImpl("",
+                           ResourcePath.empty(),
                            ResourcePath.empty(),
                            ResourcePath.empty(),
                            queryParams,
                            new MultiValueMapImpl<String, String>());
   }
 
+  private UriInfoImpl createUrlInfoWithPathParams(final MultivaluedMap<String, String> pathParams) {
+    return new UriInfoImpl("",
+                           ResourcePath.empty(),
+                           ResourcePath.empty(),
+                           ResourcePath.empty(),
+                           new MultiValueMapImpl<String, String>(),
+                           pathParams);
+  }
+
   private UriInfoImpl createEmptyInfo() {
-    return createUriInfoImpl(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
+    return createUrlInfoWithQueryParams(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
   }
 
   public static class ResourceClass {
@@ -333,6 +349,12 @@ public final class ResourceExecutionTest {
     @Produces("text/plain")
     public boolean getContextField() {
       return uriInfo != null;
+    }
+
+    @GET
+    @Path("pathParamAsLong/{id}")
+    public long pathParamAsLong(@PathParam("id") long id) {
+      return id;
     }
 
   }

@@ -1,5 +1,7 @@
 package ch.rabbithole.sra.resource;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 import com.sun.ws.rs.ext.ResponseImpl;
@@ -7,9 +9,12 @@ import com.sun.ws.rs.ext.ResponseImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,11 +39,11 @@ public final class ResourceExecution {
 
   private final Resource resource;
   private final ObjectFactory objectFactory;
-  private UriInfoImpl uriInfoImpl;
   @NotNull
   private final HttpServletRequest req;
   @NotNull
   private final HttpServletResponse resp;
+  private UriInfoImpl uriInfoImpl;
 
   public ResourceExecution(@NotNull final Resource resource,
                            @NotNull final ObjectFactory objectFactory,
@@ -135,9 +140,13 @@ public final class ResourceExecution {
       WebApplicationException webE = (WebApplicationException) e;
       return webE.getResponse();
     }
+
+    StringWriter writer = new StringWriter();
+    e.printStackTrace(new PrintWriter(writer));
+
     return RuntimeDelegate.getInstance().createResponseBuilder()
         .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-        .entity(e.toString())
+        .entity(writer.toString())
         .type(MediaType.TEXT_PLAIN_TYPE)
         .build();
   }
@@ -155,13 +164,32 @@ public final class ResourceExecution {
 
       MultivaluedMap<String, Object> metadata = response.getMetadata();
       if (metadata != null) {
-        for (String s : metadata.keySet()) {
-          servletResponse.setHeader(s, ResponseImpl.getHeaderString(ResponseImpl.toListOfStrings(metadata.get(s))));
+        for (String headerKey : metadata.keySet()) {
+          List<Object> values = metadata.get(headerKey);
+          if (headerKey.equals(HttpHeaders.LOCATION)) {
+            values = toAbsoluteUrls(values);
+          }
+          final String headerString = ResponseImpl.getHeaderString(ResponseImpl.toListOfStrings(values));
+          servletResponse.setHeader(headerKey, headerString);
         }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private List<Object> toAbsoluteUrls(List<Object> values) {
+    return Lists.transform(values, new Function<Object, Object>() {
+      @Override
+      public Object apply(Object o) {
+        final URI uri = URI.create(o.toString());
+        if (uri.isAbsolute()) {
+          return o;
+        }
+        return uriInfoImpl.getBaseUri().resolve(uri).toString();
+      }
+    });
+
   }
 
   private Object[] buildMethodParams(final UriInfoImpl uriInfo, final HttpServletRequest request) {
@@ -198,7 +226,7 @@ public final class ResourceExecution {
       if (annotation.annotationType().equals(PathParam.class)) {
         PathParam pathParam = (PathParam) annotation;
         final String paramName = pathParam.value();
-        return this.uriInfoImpl.getQueryParameters(false).getFirst(paramName);
+        return convertToObject(this.uriInfoImpl.getPathParameters(false).getFirst(paramName), parameterType);
       }
 
       if (annotation.annotationType().equals(QueryParam.class)) {
@@ -225,15 +253,47 @@ public final class ResourceExecution {
           }
         }
 
-        //FIXME Use java default according to the parameter type
         if (result == null) {
-          throw new RuntimeException("No QueryParam and no default value specified");
+          result = getJavaDefault(parameterType);
         }
 
         return result;
       }
 
     }
+    return null;
+  }
+
+  private Object getJavaDefault(Class<?> parameterType) {
+    if (!parameterType.isPrimitive()) {
+      return null;
+    }
+
+    if (parameterType.equals(long.class)) {
+      return 0;
+    }
+    if (parameterType.equals(byte.class)) {
+      return 0;
+    }
+    if (parameterType.equals(char.class)) {
+      return 0;
+    }
+    if (parameterType.equals(short.class)) {
+      return 0;
+    }
+    if (parameterType.equals(boolean.class)) {
+      return 0;
+    }
+    if (parameterType.equals(int.class)) {
+      return 0;
+    }
+    if (parameterType.equals(float.class)) {
+      return 0.0f;
+    }
+    if (parameterType.equals(double.class)) {
+      return 0.0f;
+    }
+
     return null;
   }
 

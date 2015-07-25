@@ -16,6 +16,12 @@ public final class ResourcePathTest {
   }
 
   @Test
+  public void testParseWithParam() {
+    ResourcePath path = ResourcePath.parse("{a}");
+    assertEquals("{a}", path.getPathSegments().get(0).getPath());
+  }
+
+  @Test
   public void testParseMethodWithMultipleParts() {
     ResourcePath path = ResourcePath.parse("/a/b");
     assertEquals("a", path.getPathSegments().get(0).getPath());
@@ -25,6 +31,7 @@ public final class ResourcePathTest {
   @Test
   public void testPathWithWildcardParts() {
     ResourcePath path = ResourcePath.parse("/a/{resourceId}");
+    assertEquals(2, path.getPathSegments().size());
     assertEquals("a", path.getPathSegments().get(0).getPath());
     assertEquals("{resourceId}", path.getPathSegments().get(1).getPath());
   }

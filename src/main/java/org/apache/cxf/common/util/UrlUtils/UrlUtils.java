@@ -83,6 +83,10 @@ public final class UrlUtils {
    */
   public static Map<String, String> parseQueryString(String s) {
     Map<String, String> ht = new HashMap<String, String>();
+    if (s == null || s.isEmpty()) {
+      return ht;
+    }
+
     StringTokenizer st = new StringTokenizer(s, "&");
     while (st.hasMoreTokens()) {
       String pair = st.nextToken();

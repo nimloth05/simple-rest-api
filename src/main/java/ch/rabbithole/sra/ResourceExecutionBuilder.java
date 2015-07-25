@@ -38,7 +38,10 @@ public final class ResourceExecutionBuilder {
   }
 
   public ResourceExecution build(HttpServletRequest request, HttpServletResponse response, ObjectFactory factory) {
-    UriInfoImpl uriInfo = UriInfoImpl.create(request.getRequestURI(),
+    final String domainPart = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+
+    UriInfoImpl uriInfo = UriInfoImpl.create(domainPart,
+                                             request.getRequestURI(),
                                              request.getPathInfo(),
                                              request.getQueryString(),
                                              pathParams);

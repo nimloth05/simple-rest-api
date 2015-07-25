@@ -27,14 +27,16 @@ public final class UriInfoImpl implements UriInfo {
   private final MultivaluedMap<String, String> queryParams;
   private final MultivaluedMap<String, String> pathParams;
   private final ResourcePath requestPath;
+  private String domainPart;
   private ResourcePath resourcePath;
   private Resource matchedResource;
 
-  public UriInfoImpl(ResourcePath requestPath,
+  public UriInfoImpl(String domainPart, ResourcePath requestPath,
                      ResourcePath resourcePath,
                      ResourcePath basePath,
                      MultivaluedMap<String, String> queryParams,
                      MultivaluedMap<String, String> pathParams) {
+    this.domainPart = domainPart;
 
     this.requestPath = requestPath;
     this.basePath = basePath;
@@ -42,17 +44,20 @@ public final class UriInfoImpl implements UriInfo {
 
     this.queryParams = queryParams;
     this.pathParams = pathParams;
-
   }
 
-  public static UriInfoImpl create(final String requestUri, final String pathInfo, final String queryString, MultivaluedMap<String, String> pathParams) {
+  public static UriInfoImpl create(final String domainPart,
+                                   final String requestUri,
+                                   final String pathInfo,
+                                   final String queryString,
+                                   MultivaluedMap<String, String> pathParams) {
     final ResourcePath requestPath = ResourcePath.parse(requestUri);
     final ResourcePath resourcePath = ResourcePath.parse(pathInfo);
     final ResourcePath basePath = requestPath.disjoint(resourcePath);
 
     final MultivaluedMap<String, String> queryParams = new MultiValueMapImpl<>(UrlUtils.parseQueryString(queryString));
 
-    return new UriInfoImpl(requestPath, resourcePath, basePath, queryParams, pathParams);
+    return new UriInfoImpl(domainPart, requestPath, resourcePath, basePath, queryParams, pathParams);
   }
 
   public void setMatchedResource(final Resource matchedResource) {
@@ -99,7 +104,7 @@ public final class UriInfoImpl implements UriInfo {
 
   @Override
   public URI getAbsolutePath() {
-    return null;
+    return URI.create(domainPart + "/" + requestPath.toString());
   }
 
   @Override
@@ -109,7 +114,7 @@ public final class UriInfoImpl implements UriInfo {
 
   @Override
   public URI getBaseUri() {
-    return URI.create(basePath.toString());
+    return URI.create(domainPart + "/" + basePath.toString());
   }
 
   @Override

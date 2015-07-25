@@ -41,20 +41,20 @@ public final class ResponseImpl extends Response {
   public static String getHeaderString(List<String> values) {
     if (values == null) {
       return null;
-    } else {
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < values.size(); i++) {
-        String value = values.get(i);
-        if (value == null || value.isEmpty()) {
-          continue;
-        }
-        sb.append(value);
-        if (i + 1 < values.size()) {
-          sb.append(",");
-        }
-      }
-      return sb.toString();
     }
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < values.size(); i++) {
+      String value = values.get(i);
+      if (value == null || value.isEmpty()) {
+        continue;
+      }
+      sb.append(value);
+      if (i + 1 < values.size()) {
+        sb.append(",");
+      }
+    }
+    return sb.toString();
   }
 
   public static int getContentLength(String value) {
@@ -66,6 +66,19 @@ public final class ResponseImpl extends Response {
       return len >= 0 ? len : -1;
     } catch (Exception ex) {
       return -1;
+    }
+  }
+
+  public static List<String> toListOfStrings(List<Object> values) {
+    if (values == null) {
+      return null;
+    } else {
+      return Lists.transform(values, new Function<Object, String>() {
+        @Override
+        public String apply(final Object input) {
+          return input.toString();
+        }
+      });
     }
   }
 
@@ -82,18 +95,5 @@ public final class ResponseImpl extends Response {
   @Override
   public MultivaluedMap<String, Object> getMetadata() {
     return metadata;
-  }
-
-  public static List<String> toListOfStrings(List<Object> values) {
-    if (values == null) {
-      return null;
-    } else {
-      return Lists.transform(values, new Function<Object, String>() {
-        @Override
-        public String apply(final Object input) {
-          return input.toString();
-        }
-      });
-    }
   }
 }

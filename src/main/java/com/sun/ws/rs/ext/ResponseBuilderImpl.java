@@ -50,7 +50,6 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
     return this;
   }
 
-
   @Override
   public Response.ResponseBuilder cacheControl(final CacheControl cacheControl) {
     throw new UnsupportedOperationException();
@@ -61,7 +60,6 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
     metadata.putSingle(s, o);
     return this;
   }
-
 
   @Override
   public Response.ResponseBuilder language(final String language) {
