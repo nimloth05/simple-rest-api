@@ -226,13 +226,13 @@ public final class ResourceExecution {
       if (annotation.annotationType().equals(PathParam.class)) {
         PathParam pathParam = (PathParam) annotation;
         final String paramName = pathParam.value();
-        return convertToObject(this.uriInfoImpl.getPathParameters(false).getFirst(paramName), parameterType);
+        return convertToObject(this.uriInfoImpl.getPathParameters(true).getFirst(paramName), parameterType);
       }
 
       if (annotation.annotationType().equals(QueryParam.class)) {
         QueryParam pathParam = (QueryParam) annotation;
         final String paramName = pathParam.value();
-        List<String> values = uriInfo.getQueryParameters(false).get(paramName);
+        List<String> values = uriInfo.getQueryParameters(true).get(paramName);
         Object result = null;
 
         if (values == null || values.isEmpty()) {

@@ -17,10 +17,12 @@ import ch.rabbithole.sra.resource.ObjectFactory;
 public abstract class DispatchServlet extends HttpServlet {
 
   private final ObjectFactory objectFactory;
+  private final ResourceConfiguration configuration;
 
   @Inject
   public DispatchServlet(final Injector injector) {
     objectFactory = createObjectFactory(injector);
+    configuration = getConfiguration();
   }
 
   /**
@@ -38,7 +40,6 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-    ResourceConfiguration configuration = getConfiguration();
     configuration.executeResource(objectFactory, HttpVerb.DELETE, req, resp);
   }
 
@@ -49,7 +50,6 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-      ResourceConfiguration configuration = getConfiguration();
       configuration.executeResource(objectFactory, HttpVerb.GET, req, resp);
   }
 
@@ -60,7 +60,6 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-    ResourceConfiguration configuration = getConfiguration();
     configuration.executeResource(objectFactory, HttpVerb.POST, req, resp);
   }
 
@@ -71,7 +70,6 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-    ResourceConfiguration configuration = getConfiguration();
     configuration.executeResource(objectFactory, HttpVerb.PUT, req, resp);
   }
 
