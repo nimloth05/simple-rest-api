@@ -9,6 +9,8 @@ import com.sun.ws.rs.ext.ResponseImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
@@ -16,7 +18,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -116,19 +120,21 @@ public final class ResourceExecution {
       if (MediaType.APPLICATION_JSON.equals(mediaType)) {
         responseBuilder
             .entity(convertToJson(resultObject))
-            .type(MediaType.APPLICATION_JSON_TYPE);
+            .type(createMediaTypeWithEncoding(MediaType.APPLICATION_JSON_TYPE));
+
       } else if (MediaType.TEXT_PLAIN.equals(mediaType)) {
         responseBuilder
             .entity(resultObject.toString())
-            .type(MediaType.TEXT_PLAIN_TYPE);
+            .type(createMediaTypeWithEncoding(MediaType.TEXT_PLAIN_TYPE));
+
       } else {
         throw new IllegalArgumentException("Not supported media type: " + mediaType + " in resource " + resource);
       }
     } else {
-      //assume json
+      //no produces annotation, assume json
       responseBuilder
           .entity(convertToJson(resultObject))
-          .type(MediaType.APPLICATION_JSON_TYPE);
+          .type(createMediaTypeWithEncoding(MediaType.APPLICATION_JSON_TYPE));
     }
 
     return responseBuilder.build();
@@ -154,8 +160,8 @@ public final class ResourceExecution {
   private void writeAnswer(final HttpServletResponse servletResponse, final Response response) {
     try {
       final String entityMessage = (String) response.getEntity();
+      writeToOutputStream(servletResponse, entityMessage);
 
-      servletResponse.getWriter().print(entityMessage);
       servletResponse.setStatus(response.getStatus());
       Object contentType = response.getMetadata().getFirst(HttpHeaders.CONTENT_TYPE);
       if (contentType != null) {
@@ -176,6 +182,16 @@ public final class ResourceExecution {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private void writeToOutputStream(final HttpServletResponse servletResponse, final String entityMessage) throws IOException {
+    if (entityMessage == null) {
+      return;
+    }
+    OutputStream os = servletResponse.getOutputStream();
+    OutputStreamWriter writer = new OutputStreamWriter(os, "UTF-8");
+    writer.write(entityMessage);
+    writer.close();
   }
 
   private List<Object> toAbsoluteUrls(List<Object> values) {
@@ -309,6 +325,12 @@ public final class ResourceExecution {
   private Object convertToObject(final String json, final Class type) {
     Gson gson = new Gson();
     return gson.fromJson(json, type);
+  }
+
+  private MediaType createMediaTypeWithEncoding(final MediaType mediaType) {
+    Map<String, String> params = new HashMap<>();
+    params.put("charset", "UTF-8");
+    return new MediaType(mediaType.getType(), mediaType.getSubtype(), params);
   }
 
   public String getMethodName() {

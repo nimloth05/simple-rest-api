@@ -10,9 +10,8 @@ import org.mockito.Mockito;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,18 +49,15 @@ import static org.mockito.Mockito.when;
 public final class ResourceExecutionTest {
 
   private HttpServletRequest requestMock;
-  private StringWriter out;
+  private StubServletOutputStream out;
   private HttpServletResponse responseMock;
 
   @Before
   public void setUp() throws Exception {
     requestMock = Mockito.mock(HttpServletRequest.class);
-    out = new StringWriter();
-    PrintWriter writer = new PrintWriter(out);
     responseMock = Mockito.mock(HttpServletResponse.class);
-    when(responseMock.getWriter()).thenReturn(writer);
-
-
+    out = new StubServletOutputStream();
+    when(responseMock.getOutputStream()).thenReturn(out);
   }
 
   @Test
@@ -124,9 +120,6 @@ public final class ResourceExecutionTest {
     assertBufferContent("200");
   }
 
-  private void assertBufferContent(final String expected) {
-    assertEquals(expected, out.getBuffer().toString());
-  }
 
   @Test
   public void testWebApplicationExceptionHandling() throws NoSuchMethodException {
@@ -148,6 +141,15 @@ public final class ResourceExecutionTest {
     resource.execute();
     verify(responseMock).setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
     verify(responseMock).setHeader(HttpHeaders.LOCATION, "http://www.example.com");
+  }
+
+  @Test
+  public void testDontConvertStringPathParamToJson() throws NoSuchMethodException {
+    MultivaluedMap<String, String> map = new MultiValueMapImpl<>();
+    map.putSingle("value", "Hallo Welt");
+    ResourceExecution resource = createResourceExecution(getMethod("pathParamAsString", String.class), createUrlInfoWithPathParams(map));
+    resource.execute();
+    assertBufferContent("\"Hallo Welt\"");
   }
 
   @Test
@@ -256,6 +258,15 @@ public final class ResourceExecutionTest {
     return createUrlInfoWithQueryParams(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
   }
 
+  private void assertBufferContent(final String expected) {
+    try {
+      String bufferContent = new String(out.baos.toByteArray(), "UTF-8");
+      assertEquals(expected, bufferContent);
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static class ResourceClass {
 
     @Context
@@ -355,6 +366,12 @@ public final class ResourceExecutionTest {
     @Path("pathParamAsLong/{id}")
     public long pathParamAsLong(@PathParam("id") long id) {
       return id;
+    }
+
+    @GET
+    @Path("pathParamAsString/{value}")
+    public String pathParamAsString(@PathParam("value") String value) {
+      return value;
     }
 
   }
