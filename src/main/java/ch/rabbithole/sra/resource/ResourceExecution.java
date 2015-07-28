@@ -2,7 +2,6 @@ package ch.rabbithole.sra.resource;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 
 import com.sun.ws.rs.ext.ResponseImpl;
 
@@ -37,6 +36,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.RuntimeDelegate;
 
+import ch.rabbithole.sra.ObjectUtil;
 import ch.rabbithole.sra.impl.UriInfoImpl;
 
 public final class ResourceExecution {
@@ -67,10 +67,10 @@ public final class ResourceExecution {
 
     setContextFields(instance);
 
-    Object[] params = buildMethodParams(uriInfoImpl, req);
+    Object[] params = buildMethodParams(uriInfoImpl);
 
     Response response = executeResourceMethod(instance, params);
-    writeAnswer(resp, response);
+    writeAnswer( response);
   }
 
   private void setContextFields(Object instance) {
@@ -106,9 +106,13 @@ public final class ResourceExecution {
   }
 
   private Response buildResponseObject(final Object resultObject) {
-    Response.ResponseBuilder responseBuilder = RuntimeDelegate.getInstance().createResponseBuilder()
-        .status(HttpServletResponse.SC_OK);
+    Response.ResponseBuilder responseBuilder = RuntimeDelegate.getInstance().createResponseBuilder();
+    if (resultObject == null) {
+      responseBuilder.status(HttpServletResponse.SC_NO_CONTENT);
+      return responseBuilder.build();
+    }
 
+    responseBuilder.status(HttpServletResponse.SC_OK);
     Produces annotation = resource.getAnnotation(Produces.class);
     if (annotation != null) {
       String[] mediaTypes = annotation.value();
@@ -119,7 +123,7 @@ public final class ResourceExecution {
       String mediaType = mediaTypes[0];
       if (MediaType.APPLICATION_JSON.equals(mediaType)) {
         responseBuilder
-            .entity(convertToJson(resultObject))
+            .entity(ObjectUtil.toJson(resultObject))
             .type(createMediaTypeWithEncoding(MediaType.APPLICATION_JSON_TYPE));
 
       } else if (MediaType.TEXT_PLAIN.equals(mediaType)) {
@@ -133,7 +137,7 @@ public final class ResourceExecution {
     } else {
       //no produces annotation, assume json
       responseBuilder
-          .entity(convertToJson(resultObject))
+          .entity(ObjectUtil.toJson(resultObject))
           .type(createMediaTypeWithEncoding(MediaType.APPLICATION_JSON_TYPE));
     }
 
@@ -157,15 +161,15 @@ public final class ResourceExecution {
         .build();
   }
 
-  private void writeAnswer(final HttpServletResponse servletResponse, final Response response) {
+  private void writeAnswer( final Response response) {
     try {
       final String entityMessage = (String) response.getEntity();
-      writeToOutputStream(servletResponse, entityMessage);
+      writeToOutputStream(resp, entityMessage);
 
-      servletResponse.setStatus(response.getStatus());
+      resp.setStatus(response.getStatus());
       Object contentType = response.getMetadata().getFirst(HttpHeaders.CONTENT_TYPE);
       if (contentType != null) {
-        servletResponse.setContentType(contentType.toString());
+        resp.setContentType(contentType.toString());
       }
 
       MultivaluedMap<String, Object> metadata = response.getMetadata();
@@ -176,7 +180,7 @@ public final class ResourceExecution {
             values = toAbsoluteUrls(values);
           }
           final String headerString = ResponseImpl.getHeaderString(ResponseImpl.toListOfStrings(values));
-          servletResponse.setHeader(headerKey, headerString);
+          resp.setHeader(headerKey, headerString);
         }
       }
     } catch (IOException e) {
@@ -208,123 +212,8 @@ public final class ResourceExecution {
 
   }
 
-  private Object[] buildMethodParams(final UriInfoImpl uriInfo, final HttpServletRequest request) {
-    Annotation[][] parameterAnnotations = resource.getParameterAnnotations();
-    Object[] result = new Object[parameterAnnotations.length];
-    for (int i = 0; i < parameterAnnotations.length; i++) {
-      Annotation[] annotations = parameterAnnotations[i];
-      Class<?> aClass = resource.getParameterTypes(i);
-      result[i] = getParameterValue(annotations, uriInfo, aClass, request);
-    }
-    return result;
-  }
-
-  private Object getParameterValue(final Annotation[] annotations, final UriInfoImpl uriInfo, final Class<?> parameterType, final HttpServletRequest request) {
-    if (annotations.length == 0) {
-      //we assume that an parameter without annotation is passed via request
-      Gson gson = new Gson();
-      Object object;
-      try {
-        object = gson.fromJson(request.getReader(), parameterType);
-      } catch (IOException e) {
-        throw new RuntimeException("Could not parse json argument", e);
-      }
-      return object;
-    }
-
-    for (Annotation annotation : annotations) {
-      if (annotation.annotationType().equals(Context.class)) {
-        if (HttpServletRequest.class.isAssignableFrom(parameterType)) {
-          return request;
-        }
-      }
-
-      if (annotation.annotationType().equals(PathParam.class)) {
-        PathParam pathParam = (PathParam) annotation;
-        final String paramName = pathParam.value();
-        final String value = this.uriInfoImpl.getPathParameters(true).getFirst(paramName);
-        if (parameterType.equals(String.class)) {
-          return value;
-        }
-        return convertToObject(value, parameterType);
-      }
-
-      if (annotation.annotationType().equals(QueryParam.class)) {
-        QueryParam pathParam = (QueryParam) annotation;
-        final String paramName = pathParam.value();
-        List<String> values = uriInfo.getQueryParameters(true).get(paramName);
-        Object result = null;
-
-        if (values == null || values.isEmpty()) {
-          for (Annotation annotation1 : annotations) {
-            if (annotation1.annotationType().equals(DefaultValue.class)) {
-              DefaultValue defaultValue = (DefaultValue) annotation1;
-              result = convertToObject(defaultValue.value(), parameterType);
-              break;
-            }
-          }
-        } else {
-          if (parameterType.equals(String.class)) {
-            result = values.get(0);
-          } else if (parameterType.equals(String[].class)) {
-            result = values.toArray(new String[values.size()]);
-          } else {
-            result = convertToObject(values.get(0), parameterType);
-          }
-        }
-
-        if (result == null) {
-          result = getJavaDefault(parameterType);
-        }
-
-        return result;
-      }
-
-    }
-    return null;
-  }
-
-  private Object getJavaDefault(Class<?> parameterType) {
-    if (!parameterType.isPrimitive()) {
-      return null;
-    }
-
-    if (parameterType.equals(long.class)) {
-      return 0;
-    }
-    if (parameterType.equals(byte.class)) {
-      return 0;
-    }
-    if (parameterType.equals(char.class)) {
-      return 0;
-    }
-    if (parameterType.equals(short.class)) {
-      return 0;
-    }
-    if (parameterType.equals(boolean.class)) {
-      return 0;
-    }
-    if (parameterType.equals(int.class)) {
-      return 0;
-    }
-    if (parameterType.equals(float.class)) {
-      return 0.0f;
-    }
-    if (parameterType.equals(double.class)) {
-      return 0.0f;
-    }
-
-    return null;
-  }
-
-  private String convertToJson(final Object invoke) {
-    Gson gson = new Gson();
-    return gson.toJson(invoke);
-  }
-
-  private Object convertToObject(final String json, final Class type) {
-    Gson gson = new Gson();
-    return gson.fromJson(json, type);
+  private Object[] buildMethodParams(final UriInfoImpl uriInfo) {
+    return resource.buildMethodParams(uriInfo, req);
   }
 
   private MediaType createMediaTypeWithEncoding(final MediaType mediaType) {
