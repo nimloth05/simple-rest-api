@@ -43,6 +43,7 @@ import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourcePath;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +81,7 @@ public final class ResourceExecutionTest {
     map.putSingle("id", "anId");
     ResourceExecution resource = createResourceExecution(getMethod("getWithParam", String.class), createUrlInfoWithPathParams(map));
     resource.execute();
-    assertBufferContent("\"anId\"");
+    assertBufferContent("anId");
   }
 
   @Test
@@ -91,7 +92,7 @@ public final class ResourceExecutionTest {
 
     ResourceExecution resource = createResourceExecution(getMethod("getWithParam2", String.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
-    assertBufferContent("\"value2\"");
+    assertBufferContent("value2");
   }
 
   @Test
@@ -284,11 +285,14 @@ public final class ResourceExecutionTest {
 
     @GET
     @Path("{id}")
+    @Produces("text/plain")
     public String getWithParam(@PathParam("id") final String id) {
+      assertFalse(id.startsWith("\""));
       return id;
     }
 
     @GET
+    @Produces("text/plain")
     public String getWithParam2(@QueryParam("param2") String value) {
       return value;
     }
