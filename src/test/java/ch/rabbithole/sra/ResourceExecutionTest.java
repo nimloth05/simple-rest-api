@@ -6,6 +6,7 @@ import com.sun.ws.rs.ext.MultiValueMapImpl;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.BufferedReader;
@@ -44,6 +45,8 @@ import ch.rabbithole.sra.resource.ResourcePath;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.AdditionalMatchers.eq;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,26 +124,25 @@ public final class ResourceExecutionTest {
     assertBufferContent("200");
   }
 
-
   @Test
-  public void testWebApplicationExceptionHandling() throws NoSuchMethodException {
+  public void testWebApplicationExceptionHandling() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod("getWebApplicationException"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).setStatus(HttpServletResponse.SC_NOT_FOUND);
+    verify(responseMock).sendError(Matchers.eq(HttpServletResponse.SC_NOT_FOUND), (String) anyObject());
   }
 
   @Test
-  public void testExceptionGeneratesAnInternalServerError() throws NoSuchMethodException {
+  public void testExceptionGeneratesAnInternalServerError() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod("getException"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    verify(responseMock).sendError(Matchers.eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), (String) anyObject());
   }
 
   @Test
-  public void testGerResponseFromMethod() throws NoSuchMethodException {
+  public void testGerResponseFromMethod() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod("getRedirectResponse"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+    verify(responseMock).sendError(Matchers.eq(HttpServletResponse.SC_TEMPORARY_REDIRECT), (String) anyObject());
     verify(responseMock).setHeader(HttpHeaders.LOCATION, "http://www.example.com");
   }
 

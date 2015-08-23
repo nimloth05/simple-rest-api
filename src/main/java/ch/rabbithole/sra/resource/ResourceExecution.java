@@ -23,10 +23,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -152,7 +149,9 @@ public final class ResourceExecution {
     }
 
     StringWriter writer = new StringWriter();
-    e.printStackTrace(new PrintWriter(writer));
+    writer.write(e.toString());
+    //The whole stacktrace is a little bit to much for the client in most cases
+//    e.printStackTrace(new PrintWriter(writer));
 
     return RuntimeDelegate.getInstance().createResponseBuilder()
         .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
@@ -164,12 +163,16 @@ public final class ResourceExecution {
   private void writeAnswer( final Response response) {
     try {
       final String entityMessage = (String) response.getEntity();
-      writeToOutputStream(resp, entityMessage);
+      if (response.getStatus()>=200 && response.getStatus()<=299) {
+        writeToOutputStream(resp, entityMessage);
+        resp.setStatus(response.getStatus());
 
-      resp.setStatus(response.getStatus());
-      Object contentType = response.getMetadata().getFirst(HttpHeaders.CONTENT_TYPE);
-      if (contentType != null) {
-        resp.setContentType(contentType.toString());
+        Object contentType = response.getMetadata().getFirst(HttpHeaders.CONTENT_TYPE);
+        if (contentType != null) {
+          resp.setContentType(contentType.toString());
+        }
+      } else {
+        resp.sendError(response.getStatus(), entityMessage);
       }
 
       MultivaluedMap<String, Object> metadata = response.getMetadata();
