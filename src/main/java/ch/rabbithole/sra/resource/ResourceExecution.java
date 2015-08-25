@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -67,7 +66,7 @@ public final class ResourceExecution {
     Object[] params = buildMethodParams(uriInfoImpl);
 
     Response response = executeResourceMethod(instance, params);
-    writeAnswer( response);
+    writeAnswer(response);
   }
 
   private void setContextFields(Object instance) {
@@ -160,10 +159,10 @@ public final class ResourceExecution {
         .build();
   }
 
-  private void writeAnswer( final Response response) {
+  private void writeAnswer(final Response response) {
     try {
       final String entityMessage = (String) response.getEntity();
-      if (response.getStatus()>=200 && response.getStatus()<=299) {
+      if (response.getStatus() >= 200 && response.getStatus() <= 399) {
         writeToOutputStream(resp, entityMessage);
         resp.setStatus(response.getStatus());
 

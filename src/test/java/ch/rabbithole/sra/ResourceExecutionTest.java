@@ -142,7 +142,7 @@ public final class ResourceExecutionTest {
   public void testGerResponseFromMethod() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod("getRedirectResponse"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).sendError(Matchers.eq(HttpServletResponse.SC_TEMPORARY_REDIRECT), (String) anyObject());
+    verify(responseMock).setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
     verify(responseMock).setHeader(HttpHeaders.LOCATION, "http://www.example.com");
   }
 

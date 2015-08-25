@@ -1,7 +1,5 @@
 package ch.rabbithole.sra;
 
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MultivaluedMap;
