@@ -1,12 +1,11 @@
 package ch.rabbithole.sra.impl;
 
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
@@ -20,9 +19,9 @@ public final class UriBuilderImpl extends UriBuilder {
   private String host;
   private int port = DEFAULT_PORT;
   private String sceme;
-  private String path;
+  private String path = "";
+  private String query = "";
 
-  private MultivaluedMap<String, String> queryParams = new MultiValueMapImpl<>();
 
   @Override
   public UriBuilder clone() {
@@ -96,43 +95,82 @@ public final class UriBuilderImpl extends UriBuilder {
   public UriBuilder segment(String... segments) throws IllegalArgumentException {
     final StringBuilder builder = new StringBuilder(this.path);
     for (String segment : segments) {
+      if (segment.startsWith("/")) {
+        builder.append(segment);
+      } else {
+        builder.append("/").append(segment);
+      }
+
+      int lastCharIndex = builder.length() - 1;
+      if (builder.charAt(lastCharIndex) == '/') {
+        builder.deleteCharAt(lastCharIndex);
+      }
     }
-    return null;
+    this.path = builder.toString();
+    return this;
   }
 
   @Override
   public UriBuilder replaceMatrix(String matrix) throws IllegalArgumentException {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public UriBuilder matrixParam(String name, Object... values) throws IllegalArgumentException {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public UriBuilder replaceMatrixParam(String name, Object... values) throws IllegalArgumentException {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public UriBuilder replaceQuery(String query) throws IllegalArgumentException {
-    return null;
+    this.query = query != null ? query : "";
+    return this;
   }
 
   @Override
   public UriBuilder queryParam(String name, Object... values) throws IllegalArgumentException {
-    return null;
+    final StringBuilder builder = new StringBuilder(query);
+    buildQueryString(builder, name, values);
+    return this;
+  }
+
+  private void buildQueryString(final StringBuilder builder, final String name, final Object[] values) {
+    for (Object value : values) {
+
+      if (builder.length() > 0) {
+        builder.append('&');
+      }
+
+      builder.append(encode(name));
+      if (value != null) {
+        builder.append('=');
+        builder.append(encode(value.toString()));
+      }
+    }
+    this.query = builder.toString();
+  }
+
+  private String encode(final String value) {
+    try {
+      return URLEncoder.encode(value, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public UriBuilder replaceQueryParam(String name, Object... values) throws IllegalArgumentException {
-    return null;
+    buildQueryString(new StringBuilder(), name, values);
+    return this;
   }
 
   @Override
   public UriBuilder fragment(String fragment) {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -147,21 +185,16 @@ public final class UriBuilderImpl extends UriBuilder {
 
   @Override
   public URI build(Object... values) throws IllegalArgumentException, UriBuilderException {
-    if (values != null) {
+    if (values != null && values.length > 0) {
       throw new IllegalArgumentException("URL template parameter featre not implemented");
     }
     final String portPart = port == DEFAULT_PORT ? "" : ":" + port;
 
-    final String queryString = buildQueryString();
-    final String queryPart = queryString.isEmpty() ? "" : "?" + queryString;
+    final String queryPart = query.isEmpty() ? "" : "?" + query;
 
-    final String pathPart = path.isEmpty() ? "" : "/" + path;
+    final String pathPart = path == null || path.isEmpty() ? "" : path;
 
     return URI.create(sceme + "://" + host + portPart + pathPart + queryPart);
-  }
-
-  private String buildQueryString() {
-    return "";
   }
 
   @Override
