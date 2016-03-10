@@ -1,7 +1,6 @@
 package ch.rabbithole.sra.resource;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -54,6 +53,10 @@ public final class ResourcePath implements Iterable<PathSegment> {
 //    return lastPath;
   }
 
+  public static ResourcePath empty() {
+    return new ResourcePath(Collections.<PathSegment>emptyList());
+  }
+
   public ResourcePath addSubPath(final ResourcePath subPath) {
     final ArrayList<PathSegment> pathSegments = new ArrayList<>(segments.size() + subPath.getPathSegments().size());
     pathSegments.addAll(segments);
@@ -88,9 +91,5 @@ public final class ResourcePath implements Iterable<PathSegment> {
     ArrayList<PathSegment> newList = new ArrayList<>(segments);
     newList.removeAll(resourcePath.getPathSegments());
     return new ResourcePath(newList);
-  }
-
-  public static ResourcePath empty() {
-    return new ResourcePath(Collections.<PathSegment>emptyList());
   }
 }

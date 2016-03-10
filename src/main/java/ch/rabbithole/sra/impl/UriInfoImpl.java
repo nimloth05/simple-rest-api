@@ -18,6 +18,7 @@ import javax.ws.rs.core.UriInfo;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourcePath;
 
+
 /**
  * Impl for {@link UriInfo}
  */

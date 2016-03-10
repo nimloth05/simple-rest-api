@@ -3,8 +3,6 @@ package com.sun.ws.rs.ext;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
-import com.sun.org.apache.xml.internal.utils.MutableAttrListImpl;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

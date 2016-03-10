@@ -11,11 +11,11 @@
 
 package ch.rabbithole.sra.impl;
 
-import org.apache.cxf.common.util.UrlUtils.UrlUtils;
-
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.ext.Provider;
+
+import org.apache.cxf.common.util.UrlUtils.UrlUtils;
 
 @Provider
 public class PathSegmentImpl implements PathSegment {
