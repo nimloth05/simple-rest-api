@@ -14,7 +14,7 @@ import javax.ws.rs.core.UriBuilderException;
  */
 public final class UriBuilderImpl extends UriBuilder {
 
-  private final int DEFAULT_PORT = 80;
+  private final int DEFAULT_PORT = -1;
 
   private String host;
   private int port = DEFAULT_PORT;

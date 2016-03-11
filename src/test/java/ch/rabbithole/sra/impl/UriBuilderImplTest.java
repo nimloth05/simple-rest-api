@@ -78,13 +78,34 @@ public class UriBuilderImplTest {
   }
 
   @Test
-  public void testWithHttps() {
+  public void testReplaceQueryParam() {
+    UriBuilderImpl impl = new UriBuilderImpl();
 
+    impl
+        .uri(URI.create("http://example.com/a/b?k1=v1"))
+        .replaceQueryParam("k2", "v2");
+    assertEquals(URI.create("http://example.com/a/b?k2=v2"), impl.build());
+  }
+
+  @Test
+  public void testWithHttps() {
+    UriBuilderImpl impl = new UriBuilderImpl();
+
+    impl
+        .scheme("https")
+        .host("example.com");
+    assertEquals(URI.create("https://example.com"), impl.build());
   }
 
   @Test
   public void testHttpsWithDefaultPort() {
+    UriBuilderImpl impl = new UriBuilderImpl();
 
+    impl
+        .scheme("https")
+        .port(443)
+        .host("example.com");
+    assertEquals(URI.create("https://example.com:443"), impl.build());
   }
 
 
