@@ -7,6 +7,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.Variant;
 import javax.ws.rs.ext.RuntimeDelegate;
 
+import ch.rabbithole.sra.impl.UriBuilderImpl;
+
 /**
  * A simple implementation of a {@link RuntimeDelegate}
  */
@@ -14,7 +16,7 @@ public final class RuntimeDelegateImpl extends RuntimeDelegate {
 
   @Override
   public UriBuilder createUriBuilder() {
-    throw new UnsupportedOperationException();
+    return new UriBuilderImpl();
   }
 
   @Override
