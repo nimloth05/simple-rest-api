@@ -1,7 +1,5 @@
 package ch.rabbithole.sra;
 
-import org.junit.Test;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -13,8 +11,8 @@ import static org.junit.Assert.assertEquals;
 
 public final class ClientTest {
 
-  @Test
-  public void testSimpleGet() {
+
+  public static void main(String[] args) {
     Client client = new Client(MessageBodyReaderWriterRegistry.createWithDefaults());
     final Response response = client
         .target(UriBuilderImpl.fromUri("http://www.google.com").build())
@@ -26,5 +24,6 @@ public final class ClientTest {
     assertEquals(200, response.getStatus());
     System.out.println(response.getEntity());
   }
+
 
 }
