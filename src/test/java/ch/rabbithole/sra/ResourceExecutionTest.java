@@ -9,9 +9,7 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -19,9 +17,11 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -48,6 +48,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.AdditionalMatchers.eq;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +74,7 @@ public final class ResourceExecutionTest {
   }
 
   @Test
-  public void testConvertObjectToJson() throws NoSuchMethodException, IOException {
+  public void testConvertResultListToJson() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getComplexMethod(), createEmptyInfo());
     resource.execute();
     assertBufferContent("[\"1\",\"2\"]");
@@ -180,17 +181,20 @@ public final class ResourceExecutionTest {
   }
 
   @Test
+  public void testFormPassing() throws NoSuchMethodException {
+    requestTextEntityBody("A=1&B=2");
+    ResourceExecution resource = createResourceExecution(getMethod("formUrlEncoded", Map.class), createEmptyInfo());
+    resource.execute();
+    assertBufferContent("A=1&B=2");
+  }
+
+  @Test
   public void testPutJsonParam() throws NoSuchMethodException {
-    requestEntityBody(new ParamValue("gandalf"));
+    requestJsonEntityBody(new ParamValue("gandalf"));
 
     //Resource method contains assertion
     ResourceExecution resource = createResourceExecution(getMethod("putJsonParam", ParamValue.class), createEmptyInfo());
     resource.execute();
-    try {
-      verify(requestMock).getReader();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
   @Test
@@ -200,6 +204,15 @@ public final class ResourceExecutionTest {
     ResourceExecution resource = createResourceExecution(getMethod("getQueryParamWithString", String.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
     assertBufferContent("1");
+  }
+
+  @Test
+  public void testConsumesTextPlain() throws NoSuchMethodException {
+    requestTextEntityBody("gandalf");
+
+    ResourceExecution resource = createResourceExecution(getMethod("consumeStringAsTextPlain", String.class), createEmptyInfo());
+    resource.execute();
+    assertBufferContent("gandalf");
   }
 
   @Test
@@ -230,11 +243,21 @@ public final class ResourceExecutionTest {
     return getMethod("getComplexSomething");
   }
 
-  private void requestEntityBody(final Object object) {
+  private void requestJsonEntityBody(final Object object) {
     Gson gson = new Gson();
     String jsonString = gson.toJson(object);
     try {
-      when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(jsonString)));
+//      when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(jsonString)));
+      when(requestMock.getInputStream()).thenReturn(ServletInputStreamStub.create(jsonString));
+    } catch (Exception e) {
+      //how can a mock crash?
+    }
+  }
+
+  private void requestTextEntityBody(final Object object) {
+    try {
+//      when(requestMock.getReader()).thenReturn(new BufferedReader(new StringReader(jsonString)));
+      when(requestMock.getInputStream()).thenReturn(ServletInputStreamStub.create(object.toString()));
     } catch (Exception e) {
       //how can a mock crash?
     }
@@ -266,6 +289,7 @@ public final class ResourceExecutionTest {
     try {
       String bufferContent = new String(out.baos.toByteArray(), "UTF-8");
       assertEquals(expected, bufferContent);
+      Mockito.verify(responseMock).setContentLength(out.baos.toByteArray().length);
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -292,6 +316,22 @@ public final class ResourceExecutionTest {
     public String getWithParam(@PathParam("id") final String id) {
       assertFalse(id.startsWith("\""));
       return id;
+    }
+
+    @GET
+    @Produces("text/plain")
+    @Consumes("text/plain")
+    public String consumeStringAsTextPlain(final String text) {
+      return text;
+    }
+
+    @GET
+    @Produces("application/x-www-form-urlencoded")
+    @Consumes("application/x-www-form-urlencoded")
+    public Map<String, String> formUrlEncoded(final Map<String, String> map) {
+      assertEquals("1", map.get("A"));
+      assertEquals("2", map.get("B"));
+      return map;
     }
 
     @GET

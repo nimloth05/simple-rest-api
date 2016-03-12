@@ -26,6 +26,7 @@ public final class MessageBodyReaderWriterRegistry implements MessageBodyReaderW
     MessageBodyReaderWriterRegistry provider = new MessageBodyReaderWriterRegistry();
     provider.register(MediaType.APPLICATION_JSON_TYPE, new JsonMessageBodyReaderWriter());
     provider.register(MediaType.TEXT_PLAIN_TYPE, new TextMessageBodyReaderWriter());
+    provider.register(MediaType.APPLICATION_FORM_URLENCODED_TYPE, new FormParamMessageBodyReaderWriter());
     return provider;
   }
 

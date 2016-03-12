@@ -1,10 +1,16 @@
 package ch.rabbithole.sra.resource;
 
+import com.sun.ws.rs.ext.MultiValueMapImpl;
+
 import java.nio.charset.Charset;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 public final class HeaderUtil {
 
@@ -30,4 +36,26 @@ public final class HeaderUtil {
     return new MediaType(mediaType.getType(), mediaType.getSubtype(), params);
   }
 
+  public static void replaceContentTypeWithEncoding(final MediaType mediaType, final MultivaluedMap<String, Object> httpHeaders, final Charset charset) {
+    httpHeaders.remove(HttpHeaders.CONTENT_TYPE);
+    httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, createMediaTypeWithEncoding(mediaType, charset));
+  }
+
+  @SuppressWarnings("unchecked")
+  public static MultivaluedMap<String, String> toMap(final HttpServletRequest request) {
+    MultiValueMapImpl<String, String> result = new MultiValueMapImpl<>();
+
+    final Enumeration<String> headerNames = request.getHeaderNames();
+    if (headerNames == null) {
+      return result;
+    }
+
+
+    while (headerNames.hasMoreElements()) {
+      final String name = headerNames.nextElement();
+      final String header = request.getHeader(name);
+      result.putSingle(name, header);
+    }
+    return result;
+  }
 }

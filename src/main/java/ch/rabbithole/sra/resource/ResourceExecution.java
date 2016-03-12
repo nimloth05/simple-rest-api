@@ -10,16 +10,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.RuntimeDelegate;
 
+import ch.rabbithole.sra.CountingOutputStream;
 import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
@@ -40,7 +38,8 @@ import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 public final class ResourceExecution {
 
   @NotNull
-  private final MessageBodyReaderWriterProvider registry;
+  private final MessageBodyReaderWriterProvider provider;
+
   private final Resource resource;
   private final ObjectFactory objectFactory;
   @NotNull
@@ -49,13 +48,13 @@ public final class ResourceExecution {
   private final HttpServletResponse resp;
   private UriInfoImpl uriInfoImpl;
 
-  public ResourceExecution(@NotNull final MessageBodyReaderWriterProvider registry,
+  public ResourceExecution(@NotNull final MessageBodyReaderWriterProvider provider,
                            @NotNull final ObjectFactory objectFactory,
                            @NotNull final Resource resource,
                            @NotNull final UriInfoImpl uriInfo,
                            @NotNull final HttpServletRequest req,
                            @NotNull final HttpServletResponse resp) {
-    this.registry = registry;
+    this.provider = provider;
     this.resource = resource;
     this.objectFactory = objectFactory;
     this.uriInfoImpl = uriInfo;
@@ -201,8 +200,11 @@ public final class ResourceExecution {
       return;
     }
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    final MessageBodyReaderWriter<Object> writer = registry.get(contentType);
-    writer.writeTo(entity, entity.getClass(), null, resource.getAnnotations(), contentType, metadata, bos);
+    CountingOutputStream cos = new CountingOutputStream(bos);
+    final MessageBodyReaderWriter<Object> writer = provider.get(contentType);
+    writer.writeTo(entity, entity.getClass(), null, resource.getAnnotations(), contentType, metadata, cos);
+
+    resp.setContentLength((int) cos.getTransferred());
     OutputStream os = resp.getOutputStream();
     os.write(bos.toByteArray());
     os.close();
@@ -223,7 +225,7 @@ public final class ResourceExecution {
   }
 
   private Object[] buildMethodParams(final UriInfoImpl uriInfo) {
-    return resource.buildMethodParams(uriInfo, req);
+    return resource.buildMethodParams(provider, uriInfo, req, HeaderUtil.toMap(req));
   }
 
   public String getMethodName() {

@@ -5,12 +5,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 /**
  * Wraps a method into a {@link ResourceNode}
@@ -40,7 +44,12 @@ public final class Resource implements ResourceNode {
 
   private ParamType createParamType(final Class<?> paramType, final Annotation[] annotations) {
     if (annotations.length == 0) {
-      return new ParamType.ObjectParam(annotations, paramType);
+      final Consumes annotation = getAnnotation(Consumes.class);
+      MediaType type = MediaType.APPLICATION_JSON_TYPE;
+      if (annotation != null) {
+        type = MediaType.valueOf(annotation.value()[0]);
+      }
+      return new ParamType.ObjectParam(type, annotations, paramType);
     }
 
     for (Annotation annotation : annotations) {
@@ -89,10 +98,13 @@ public final class Resource implements ResourceNode {
     return method.getAnnotation(annotationClass);
   }
 
-  public Object[] buildMethodParams(final UriInfoImpl uriInfo, final HttpServletRequest req) {
+  public Object[] buildMethodParams(final MessageBodyReaderWriterProvider registry,
+                                    final UriInfoImpl uriInfo,
+                                    final HttpServletRequest req,
+                                    final MultivaluedMap<String, String> headers) {
     Object[] paramValues = new Object[paramTypes.length];
     for (int i = 0; i < paramValues.length; i++) {
-      paramValues[i] = paramTypes[i].getValue(uriInfo, req);
+      paramValues[i] = paramTypes[i].getValue(registry, uriInfo, req, headers);
     }
     return paramValues;
   }

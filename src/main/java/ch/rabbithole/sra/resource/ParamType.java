@@ -4,9 +4,13 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 import ch.rabbithole.sra.ObjectUtil;
 import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 public abstract class ParamType {
 
@@ -18,7 +22,9 @@ public abstract class ParamType {
     this.paramType = paramType;
   }
 
-  public abstract Object getValue(final UriInfoImpl uriInfo, final HttpServletRequest request);
+  public abstract Object getValue(final MessageBodyReaderWriterProvider registry,
+                                  final UriInfoImpl uriInfo,
+                                  final HttpServletRequest request, final MultivaluedMap<String, String> headers);
 
   /**
    * Param type for context annotated params.
@@ -30,7 +36,9 @@ public abstract class ParamType {
     }
 
     @Override
-    public Object getValue(final UriInfoImpl uriInfo, final HttpServletRequest request) {
+    public Object getValue(final MessageBodyReaderWriterProvider registry,
+                           final UriInfoImpl uriInfo,
+                           final HttpServletRequest request, final MultivaluedMap<String, String> headers) {
       if (HttpServletRequest.class.isAssignableFrom(paramType)) {
         return request;
       }
@@ -51,7 +59,9 @@ public abstract class ParamType {
     }
 
     @Override
-    public Object getValue(final UriInfoImpl uriInfo, final HttpServletRequest request) {
+    public Object getValue(final MessageBodyReaderWriterProvider registry,
+                           final UriInfoImpl uriInfo,
+                           final HttpServletRequest request, final MultivaluedMap<String, String> headers) {
       String value = uriInfo.getPathParameters().getFirst(paramName);
       if (paramType.equals(String.class)) {
         return value;
@@ -85,7 +95,9 @@ public abstract class ParamType {
     }
 
     @Override
-    public Object getValue(final UriInfoImpl uriInfo, final HttpServletRequest request) {
+    public Object getValue(final MessageBodyReaderWriterProvider registry,
+                           final UriInfoImpl uriInfo,
+                           final HttpServletRequest request, final MultivaluedMap<String, String> headers) {
       String value = uriInfo.getQueryParameters().getFirst(queryParamName);
       return value == null ? defaultValue : convertObject(value);
     }
@@ -96,14 +108,21 @@ public abstract class ParamType {
    */
   public static final class ObjectParam extends ParamType {
 
-    public ObjectParam(final Annotation[] annotations, final Class<?> paramType) {
+    private final MediaType type;
+
+    public ObjectParam(final MediaType type, final Annotation[] annotations, final Class<?> paramType) {
       super(annotations, paramType);
+      this.type = type;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object getValue(final UriInfoImpl uriInfo, final HttpServletRequest request) {
+    public Object getValue(final MessageBodyReaderWriterProvider registry,
+                           final UriInfoImpl uriInfo,
+                           final HttpServletRequest request, final MultivaluedMap<String, String> headers) {
       try {
-        return ObjectUtil.fromJson(request.getReader(), paramType);
+        final MessageBodyReaderWriter<Object> writer = registry.get(type);
+        return writer.readFrom((Class)paramType, null, annotations, type, headers, request.getInputStream());
       } catch (IOException e) {
         throw new RuntimeException("Could not parse param: " + request + " paramType. " + paramType);
       }
