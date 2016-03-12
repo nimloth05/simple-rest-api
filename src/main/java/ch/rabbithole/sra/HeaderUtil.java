@@ -1,10 +1,12 @@
-package ch.rabbithole.sra.resource;
+package ch.rabbithole.sra;
 
 import com.sun.ws.rs.ext.MultiValueMapImpl;
 
+import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,4 +60,16 @@ public final class HeaderUtil {
     }
     return result;
   }
+
+  @SuppressWarnings("unchecked")
+  public static MultivaluedMap<String, String> toMap(final HttpURLConnection connection) {
+    MultiValueMapImpl<String, String> result = new MultiValueMapImpl<>();
+
+    final Map<String, List<String>> headerFields = connection.getHeaderFields();
+    for (Map.Entry<String, List<String>> entry : headerFields.entrySet()) {
+      result.put(entry.getKey(), entry.getValue());
+    }
+    return result;
+  }
+
 }

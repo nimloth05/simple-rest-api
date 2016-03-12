@@ -21,7 +21,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.resource.HeaderUtil;
+import ch.rabbithole.sra.HeaderUtil;
 
 /**
  * Encodes the given multi value map as form url encoded.

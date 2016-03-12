@@ -8,8 +8,6 @@ import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
@@ -17,7 +15,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import ch.rabbithole.sra.ObjectUtil;
-import ch.rabbithole.sra.resource.HeaderUtil;
+import ch.rabbithole.sra.HeaderUtil;
 
 /**
  * Implementation for converting objects from and to json.

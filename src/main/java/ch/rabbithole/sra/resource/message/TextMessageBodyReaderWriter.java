@@ -1,9 +1,7 @@
 package ch.rabbithole.sra.resource.message;
 
 import com.google.common.io.CharStreams;
-import com.google.common.primitives.Bytes;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,7 +16,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.resource.HeaderUtil;
+import ch.rabbithole.sra.HeaderUtil;
 
 /**
  * TODO JavaDoc

@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.RuntimeDelegate;
 
 import ch.rabbithole.sra.CountingOutputStream;
+import ch.rabbithole.sra.HeaderUtil;
 import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
@@ -81,14 +82,22 @@ public final class ResourceExecution {
         final Annotation[] annotations = field.getAnnotations();
         for (Annotation annotation : annotations) {
           if (annotation.annotationType().equals(Context.class)) {
-            try {
-              field.set(instance, uriInfoImpl);
-            } catch (IllegalAccessException e) {
-              throw new RuntimeException("Field does not have sufficient access privileges: " + field, e);
+            if (UriInfo.class.isAssignableFrom(field.getType())) {
+              setFieldValue(instance, field, uriInfoImpl);
+            } else if (Client.class.isAssignableFrom(field.getType())) {
+              setFieldValue(instance, field, new Client(provider));
             }
           }
         }
       }
+    }
+  }
+
+  private void setFieldValue(final Object instance, final Field field, final Object parameter) {
+    try {
+      field.set(instance, parameter);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Field does not have sufficient access privileges: " + field, e);
     }
   }
 

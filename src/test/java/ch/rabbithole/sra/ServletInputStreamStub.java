@@ -3,11 +3,8 @@ package ch.rabbithole.sra;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import javax.servlet.ServletInputStream;
-
-import ch.rabbithole.sra.resource.HeaderUtil;
 
 /**
  * TODO JavaDoc
