@@ -7,6 +7,7 @@ import com.sun.ws.rs.ext.ResponseImpl;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -32,11 +33,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.RuntimeDelegate;
 
-import ch.rabbithole.sra.ObjectUtil;
 import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 public final class ResourceExecution {
 
+  @NotNull
+  private final MessageBodyReaderWriterProvider registry;
   private final Resource resource;
   private final ObjectFactory objectFactory;
   @NotNull
@@ -45,11 +49,13 @@ public final class ResourceExecution {
   private final HttpServletResponse resp;
   private UriInfoImpl uriInfoImpl;
 
-  public ResourceExecution(@NotNull final Resource resource,
+  public ResourceExecution(@NotNull final MessageBodyReaderWriterProvider registry,
                            @NotNull final ObjectFactory objectFactory,
+                           @NotNull final Resource resource,
                            @NotNull final UriInfoImpl uriInfo,
                            @NotNull final HttpServletRequest req,
                            @NotNull final HttpServletResponse resp) {
+    this.registry = registry;
     this.resource = resource;
     this.objectFactory = objectFactory;
     this.uriInfoImpl = uriInfo;
@@ -117,31 +123,21 @@ public final class ResourceExecution {
       }
 
       String mediaType = mediaTypes[0];
-      if (MediaType.APPLICATION_JSON.equals(mediaType)) {
-        responseBuilder
-            .entity(ObjectUtil.toJson(resultObject))
-            .type(createMediaTypeWithEncoding(MediaType.APPLICATION_JSON_TYPE));
+      responseBuilder
+          .type(mediaType)
+          .entity(resultObject);
 
-      } else if (MediaType.TEXT_PLAIN.equals(mediaType)) {
-        responseBuilder
-            .entity(resultObject.toString())
-            .type(createMediaTypeWithEncoding(MediaType.TEXT_PLAIN_TYPE));
-
-      } else {
-        throw new IllegalArgumentException("Not supported media type: " + mediaType + " in resource " + resource);
-      }
     } else {
       //no produces annotation, assume json
       responseBuilder
-          .entity(ObjectUtil.toJson(resultObject))
-          .type(createMediaTypeWithEncoding(MediaType.APPLICATION_JSON_TYPE));
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .entity(resultObject);
     }
 
     return responseBuilder.build();
   }
 
   private Response handleError(final Throwable e) {
-
     if (e instanceof WebApplicationException) {
       WebApplicationException webE = (WebApplicationException) e;
       return webE.getResponse();
@@ -161,20 +157,25 @@ public final class ResourceExecution {
 
   private void writeAnswer(final Response response) {
     try {
-      final String entityMessage = (String) response.getEntity();
-      if (response.getStatus() >= 200 && response.getStatus() <= 399) {
-        writeToOutputStream(resp, entityMessage);
-        resp.setStatus(response.getStatus());
+      MultivaluedMap<String, Object> metadata = response.getMetadata();
 
-        Object contentType = response.getMetadata().getFirst(HttpHeaders.CONTENT_TYPE);
-        if (contentType != null) {
-          resp.setContentType(contentType.toString());
+      final Object entity = response.getEntity();
+      if (response.getStatus() >= 200 && response.getStatus() <= 399) {
+        try {
+          writeToOutputStream(resp, entity, metadata);
+          resp.setStatus(response.getStatus());
+
+          Object contentType = metadata.getFirst(HttpHeaders.CONTENT_TYPE);
+          if (contentType != null) {
+            resp.setContentType(contentType.toString());
+          }
+        } catch (WebApplicationException e) {
+          resp.sendError(e.getResponse().getStatus(), e.getResponse().getEntity().toString());
         }
       } else {
-        resp.sendError(response.getStatus(), entityMessage);
+        resp.sendError(response.getStatus(), entity != null ? entity.toString() : "");
       }
 
-      MultivaluedMap<String, Object> metadata = response.getMetadata();
       if (metadata != null) {
         for (String headerKey : metadata.keySet()) {
           List<Object> values = metadata.get(headerKey);
@@ -190,14 +191,21 @@ public final class ResourceExecution {
     }
   }
 
-  private void writeToOutputStream(final HttpServletResponse servletResponse, final String entityMessage) throws IOException {
-    if (entityMessage == null) {
+  private void writeToOutputStream(final HttpServletResponse resp, final Object entity, final MultivaluedMap<String, Object> metadata) throws IOException {
+    MediaType contentType = MediaType.APPLICATION_JSON_TYPE;
+    if (metadata.containsKey(HttpHeaders.CONTENT_TYPE)) {
+      contentType = MediaType.valueOf(metadata.getFirst(HttpHeaders.CONTENT_TYPE).toString());
+    }
+
+    if (entity == null) {
       return;
     }
-    OutputStream os = servletResponse.getOutputStream();
-    OutputStreamWriter writer = new OutputStreamWriter(os, "UTF-8");
-    writer.write(entityMessage);
-    writer.close();
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    final MessageBodyReaderWriter<Object> writer = registry.get(contentType);
+    writer.writeTo(entity, entity.getClass(), null, resource.getAnnotations(), contentType, metadata, bos);
+    OutputStream os = resp.getOutputStream();
+    os.write(bos.toByteArray());
+    os.close();
   }
 
   private List<Object> toAbsoluteUrls(List<Object> values) {
@@ -216,12 +224,6 @@ public final class ResourceExecution {
 
   private Object[] buildMethodParams(final UriInfoImpl uriInfo) {
     return resource.buildMethodParams(uriInfo, req);
-  }
-
-  private MediaType createMediaTypeWithEncoding(final MediaType mediaType) {
-    Map<String, String> params = new HashMap<>();
-    params.put("charset", "UTF-8");
-    return new MediaType(mediaType.getType(), mediaType.getSubtype(), params);
   }
 
   public String getMethodName() {

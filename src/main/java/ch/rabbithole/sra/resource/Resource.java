@@ -96,4 +96,8 @@ public final class Resource implements ResourceNode {
     }
     return paramValues;
   }
+
+  public Annotation[] getAnnotations() {
+    return method.getAnnotations();
+  }
 }

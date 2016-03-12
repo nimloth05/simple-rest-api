@@ -12,17 +12,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import ch.rabbithole.sra.resource.ObjectFactory;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterRegistry;
 
 @Singleton
 public abstract class DispatchServlet extends HttpServlet {
 
   private final ObjectFactory objectFactory;
   private final ResourceConfiguration configuration;
+  private final MessageBodyReaderWriterProvider readerWriterRegistry;
 
   @Inject
   public DispatchServlet(final Injector injector) {
     objectFactory = createObjectFactory(injector);
     configuration = getConfiguration();
+    readerWriterRegistry = getMessageBodyWriterProvider();
   }
 
   /**
@@ -40,7 +44,7 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-    configuration.executeResource(objectFactory, HttpVerb.DELETE, req, resp);
+    configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.DELETE, req, resp);
   }
 
   @Override
@@ -50,7 +54,7 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-      configuration.executeResource(objectFactory, HttpVerb.GET, req, resp);
+    configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.GET, req, resp);
   }
 
   @Override
@@ -60,7 +64,7 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-    configuration.executeResource(objectFactory, HttpVerb.POST, req, resp);
+    configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.POST, req, resp);
   }
 
   @Override
@@ -70,8 +74,12 @@ public abstract class DispatchServlet extends HttpServlet {
 //      return;
 //    }
 
-    configuration.executeResource(objectFactory, HttpVerb.PUT, req, resp);
+    configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.PUT, req, resp);
   }
 
   protected abstract ResourceConfiguration getConfiguration();
+
+  protected MessageBodyReaderWriterProvider getMessageBodyWriterProvider() {
+    return MessageBodyReaderWriterRegistry.createWithDefaults();
+  }
 }

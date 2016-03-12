@@ -42,6 +42,7 @@ import ch.rabbithole.sra.resource.ConstructorObjectFactory;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourcePath;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterRegistry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -218,7 +219,7 @@ public final class ResourceExecutionTest {
   }
 
   private ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
-    return new ResourceExecution(new Resource(method), new ConstructorObjectFactory(), uriInfo, requestMock, responseMock);
+    return new ResourceExecution(MessageBodyReaderWriterRegistry.createWithDefaults(), new ConstructorObjectFactory(), new Resource(method), uriInfo, requestMock, responseMock);
   }
 
   private Method getMethod(final String methodName, final Class... paramTypes) throws NoSuchMethodException {

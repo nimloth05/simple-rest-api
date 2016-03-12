@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourcePath;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 /**
  * Class containing the configuration of all the REST Api resources
@@ -28,13 +29,15 @@ public final class ResourceConfiguration {
     return this;
   }
 
-  public void executeResource(final ObjectFactory factory, final HttpVerb verb, final HttpServletRequest req, final HttpServletResponse resp) {
+  public void executeResource(final MessageBodyReaderWriterProvider readerWriterRegistry,
+                              final ObjectFactory factory,
+                              final HttpVerb verb,
+                              final HttpServletRequest req,
+                              final HttpServletResponse resp) {
     ResourcePath path = ResourcePath.parse(req.getPathInfo());
     ResourceExecutionBuilder builder = resources.getResource(path, verb);
 
-    ResourceExecution resourceExecution = builder
-        .build(req, resp, factory);
-
+    ResourceExecution resourceExecution = builder.build(readerWriterRegistry, factory, req, resp);
     try {
       resourceExecution.execute();
     } catch (Exception e) {

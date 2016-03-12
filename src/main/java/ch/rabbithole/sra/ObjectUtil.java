@@ -17,6 +17,10 @@ public final class ObjectUtil {
     return GSON.toJson(object);
   }
 
+  public static void toJson(final Object object, final Appendable writer) {
+    GSON.toJson(object, writer);
+  }
+
   public static Object fromJson(final String value, final Class<?> type) {
     return GSON.fromJson(value, type);
   }

@@ -8,6 +8,7 @@ import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 /**
  * TODO JavaDoc
@@ -35,7 +36,10 @@ public final class ResourceExecutionBuilder {
     return this;
   }
 
-  public ResourceExecution build(HttpServletRequest request, HttpServletResponse response, ObjectFactory factory) {
+  public ResourceExecution build(final MessageBodyReaderWriterProvider readerWriterRegistry,
+                                 final ObjectFactory factory,
+                                 final HttpServletRequest request,
+                                 final HttpServletResponse response) {
     final String domainPart = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
     UriInfoImpl uriInfo = UriInfoImpl.create(domainPart,
@@ -43,7 +47,7 @@ public final class ResourceExecutionBuilder {
                                              request.getPathInfo(),
                                              request.getQueryString(),
                                              pathParams);
-    return new ResourceExecution(resource, factory, uriInfo, request, response);
+    return new ResourceExecution(readerWriterRegistry, factory, resource, uriInfo, request, response);
   }
 
   public String getMethodName() {
