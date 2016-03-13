@@ -72,4 +72,14 @@ public final class HeaderUtil {
     return result;
   }
 
+  public static String toCommaList(final List<String> value) {
+    StringBuilder builder = new StringBuilder();
+    for (String s : value) {
+      if (builder.length() > 0) {
+        builder.append(",");
+      }
+      builder.append(s);
+    }
+    return builder.toString();
+  }
 }

@@ -16,7 +16,7 @@ public final class ClientTest {
     Client client = new Client(MessageBodyReaderWriterRegistry.createWithDefaults());
     final Response response = client
         .target(UriBuilderImpl.fromUri("http://www.google.com").build())
-        .type(MediaType.TEXT_PLAIN_TYPE)
+        .request(MediaType.TEXT_PLAIN_TYPE)
         .acceptJavaType(String.class)
         .accept(MediaType.TEXT_PLAIN_TYPE)
         .get();
