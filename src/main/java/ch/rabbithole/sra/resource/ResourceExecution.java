@@ -17,6 +17,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,6 +39,8 @@ import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 public final class ResourceExecution {
+
+  private static final Logger log = Logger.getLogger(ResourceExecution.class.getName());
 
   @NotNull
   private final MessageBodyReaderWriterProvider provider;
@@ -78,15 +82,13 @@ public final class ResourceExecution {
   private void setContextFields(Object instance) {
     final Field[] fields = instance.getClass().getDeclaredFields();
     for (Field field : fields) {
-      if (field.getType().equals(UriInfo.class)) {
-        final Annotation[] annotations = field.getAnnotations();
-        for (Annotation annotation : annotations) {
-          if (annotation.annotationType().equals(Context.class)) {
-            if (UriInfo.class.isAssignableFrom(field.getType())) {
-              setFieldValue(instance, field, uriInfoImpl);
-            } else if (Client.class.isAssignableFrom(field.getType())) {
-              setFieldValue(instance, field, new Client(provider));
-            }
+      final Annotation[] annotations = field.getAnnotations();
+      for (Annotation annotation : annotations) {
+        if (annotation.annotationType().equals(Context.class)) {
+          if (UriInfo.class.isAssignableFrom(field.getType())) {
+            setFieldValue(instance, field, uriInfoImpl);
+          } else if (Client.class.isAssignableFrom(field.getType())) {
+            setFieldValue(instance, field, new Client(provider));
           }
         }
       }
@@ -109,8 +111,10 @@ public final class ResourceExecution {
       }
       return buildResponseObject(resultObject);
     } catch (InvocationTargetException e) {
+      log.log(Level.SEVERE, "Resource method threw exception", e.getCause());
       return handleError(e.getCause());
     } catch (IllegalAccessException e) {
+      log.log(Level.SEVERE, "Field has not enough visibility", e.getCause());
       throw new RuntimeException("Method must be public: " + resource);
     }
   }
@@ -153,8 +157,6 @@ public final class ResourceExecution {
 
     StringWriter writer = new StringWriter();
     writer.write(e.toString());
-    //The whole stacktrace is a little bit to much for the client in most cases
-//    e.printStackTrace(new PrintWriter(writer));
 
     return RuntimeDelegate.getInstance().createResponseBuilder()
         .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
@@ -178,6 +180,8 @@ public final class ResourceExecution {
             resp.setContentType(contentType.toString());
           }
         } catch (WebApplicationException e) {
+          log.log(Level.SEVERE, "Error during response processing", e);
+          log.severe("Error during writing response: " + e);
           resp.sendError(e.getResponse().getStatus(), e.getResponse().getEntity().toString());
         }
       } else {
