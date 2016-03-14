@@ -4,8 +4,8 @@
   <artifactId>simple-rest-api</artifactId>
   <versioning>
     <versions>
-      <version>1.0.5-SNAPSHOT</version>
+      <version>1.0.6-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20160313114702</lastUpdated>
+    <lastUpdated>20160314184022</lastUpdated>
   </versioning>
 </metadata>
