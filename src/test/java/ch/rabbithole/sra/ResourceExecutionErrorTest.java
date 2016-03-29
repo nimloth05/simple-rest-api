@@ -29,8 +29,7 @@ public final class ResourceExecutionErrorTest extends AbstractResourceTest {
   public void testResourceMethodThrowsRuntimeException() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "npe"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "");
-    assertBufferContent("Error message");
+    verify(responseMock).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "java.lang.NullPointerException: Error message");
   }
 
   public static class ResourceClass {

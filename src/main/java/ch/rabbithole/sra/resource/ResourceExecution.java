@@ -5,8 +5,6 @@ import com.google.common.collect.Lists;
 
 import com.sun.ws.rs.ext.ResponseImpl;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,6 +18,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Produces;
@@ -42,23 +41,23 @@ public final class ResourceExecution {
 
   private static final Logger log = Logger.getLogger(ResourceExecution.class.getName());
 
-  @NotNull
+  @Nonnull
   private final MessageBodyReaderWriterProvider provider;
 
   private final Resource resource;
   private final ObjectFactory objectFactory;
-  @NotNull
+  @Nonnull
   private final HttpServletRequest req;
-  @NotNull
+  @Nonnull
   private final HttpServletResponse resp;
   private UriInfoImpl uriInfoImpl;
 
-  public ResourceExecution(@NotNull final MessageBodyReaderWriterProvider provider,
-                           @NotNull final ObjectFactory objectFactory,
-                           @NotNull final Resource resource,
-                           @NotNull final UriInfoImpl uriInfo,
-                           @NotNull final HttpServletRequest req,
-                           @NotNull final HttpServletResponse resp) {
+  public ResourceExecution(@Nonnull final MessageBodyReaderWriterProvider provider,
+                           @Nonnull final ObjectFactory objectFactory,
+                           @Nonnull final Resource resource,
+                           @Nonnull final UriInfoImpl uriInfo,
+                           @Nonnull final HttpServletRequest req,
+                           @Nonnull final HttpServletResponse resp) {
     this.provider = provider;
     this.resource = resource;
     this.objectFactory = objectFactory;

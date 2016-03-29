@@ -3,13 +3,13 @@ package ch.rabbithole.sra.impl;
 import com.sun.ws.rs.ext.MultiValueMapImpl;
 
 import org.apache.cxf.common.util.UrlUtils.UrlUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriBuilder;
@@ -129,7 +129,6 @@ public final class UriInfoImpl implements UriInfo {
   }
 
   @Override
-  @NotNull
   public MultivaluedMap<String, String> getPathParameters(boolean decode) {
     MultivaluedMap<String, String> values = new MultiValueMapImpl<>();
     if (pathParams.isEmpty()) {
@@ -154,7 +153,7 @@ public final class UriInfoImpl implements UriInfo {
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public MultivaluedMap<String, String> getQueryParameters(boolean decode) {
 
     MultivaluedMap<String, String> values = new MultiValueMapImpl<>();

@@ -1,16 +1,15 @@
 package ch.rabbithole.sra;
 
+import com.sun.istack.internal.NotNull;
 import com.sun.jersey.api.NotFoundException;
 import com.sun.ws.rs.ext.MultiValueMapImpl;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;

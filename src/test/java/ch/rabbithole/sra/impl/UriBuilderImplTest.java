@@ -12,7 +12,7 @@ public class UriBuilderImplTest {
   public void testAppendPath() {
     UriBuilderImpl builder = new UriBuilderImpl();
     final URI expected = URI.create("http://example.com");
-    final URI actual = builder.uri(expected).build(null);
+    final URI actual = builder.uri(expected).build();
     assertEquals(expected, actual);
   }
 
@@ -23,7 +23,7 @@ public class UriBuilderImplTest {
     impl.host("example.com");
     impl.scheme("http");
 
-    final URI actual = impl.build(null);
+    final URI actual = impl.build();
     assertEquals(URI.create("http://example.com"), actual);
   }
 
