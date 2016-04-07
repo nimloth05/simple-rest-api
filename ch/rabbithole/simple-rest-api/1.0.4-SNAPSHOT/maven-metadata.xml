@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>ch.rabbithole</groupId>
+  <artifactId>simple-rest-api</artifactId>
+  <version>1.0.4-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20150824.105852</timestamp>
+      <buildNumber>3</buildNumber>
+    </snapshot>
+    <lastUpdated>20150824105852</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>1.0.4-20150824.105852-3</value>
+        <updated>20150824105852</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>1.0.4-20150824.105852-3</value>
+        <updated>20150824105852</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
