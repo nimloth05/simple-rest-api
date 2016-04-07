@@ -1,6 +1,5 @@
 package ch.rabbithole.sra;
 
-import com.sun.istack.internal.NotNull;
 import com.sun.jersey.api.NotFoundException;
 import com.sun.ws.rs.ext.MultiValueMapImpl;
 
@@ -9,6 +8,7 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedMap;
@@ -47,7 +47,7 @@ public final class ResourceManager {
     }
   }
 
-  @NotNull
+  @Nonnull
   public ResourceExecutionBuilder getResource(ResourcePath path, HttpVerb verb) {
     ResourceTree tree = rootTree;
     MultivaluedMap<String, String> pathParams = new MultiValueMapImpl<>();
@@ -58,12 +58,16 @@ public final class ResourceManager {
     }
 
     return new ResourceExecutionBuilder()
-        .setPathParams(pathParams)
-        .setResource(resource);
+            .setPathParams(pathParams)
+            .setResource(resource);
   }
 
   @Nullable
-  private Resource getNode(final List<PathSegment> path, final int index, final HttpVerb verb, final ResourceTree tree, final MultivaluedMap<String, String> pathParams) {
+  private Resource getNode(final List<PathSegment> path,
+                           final int index,
+                           final HttpVerb verb,
+                           final ResourceTree tree,
+                           final MultivaluedMap<String, String> pathParams) {
     //We exhausted all possibilities on this sub tree
     if (index == path.size()) {
       //it may match
@@ -75,13 +79,13 @@ public final class ResourceManager {
 
     ResourceTree subTree = tree.getSubTree(pathSegment.getPath());
     if (subTree != null) {
-      return getNode(path, index+1, verb, subTree, pathParams);
+      return getNode(path, index + 1, verb, subTree, pathParams);
     }
 
     for (Map.Entry<String, ResourceNode> treeEntry : tree.getEntries()) {
       final String key = treeEntry.getKey();
       if (key.startsWith("{") && key.endsWith("}")) {
-        Resource resource = getNode(path, index+1, verb, (ResourceTree) treeEntry.getValue(), pathParams);
+        Resource resource = getNode(path, index + 1, verb, (ResourceTree) treeEntry.getValue(), pathParams);
 
         if (resource != null) {
           final String paramId = key.substring(1, key.length() - 1);

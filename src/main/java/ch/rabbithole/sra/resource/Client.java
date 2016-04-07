@@ -27,14 +27,23 @@ public final class Client {
 
   private final MessageBodyReaderWriterProvider provider;
   private URI uri;
-  private MediaType requestType = MediaType.APPLICATION_JSON_TYPE;
-  private MediaType responseType = MediaType.APPLICATION_JSON_TYPE;
-  private Object entity = null;
+  private MediaType requestType;
+  private MediaType responseType;
+  private Object entity;
   private Class acceptJavaType;
-  private MultivaluedMap<String, String> headers = new MultiValueMapImpl<>();
+  private MultivaluedMap<String, String> headers;
 
   public Client(final MessageBodyReaderWriterProvider provider) {
     this.provider = provider;
+    reset();
+  }
+
+  public void reset() {
+    uri = null;
+    requestType = MediaType.APPLICATION_JSON_TYPE;
+    responseType = MediaType.APPLICATION_JSON_TYPE;
+    entity = null;
+    headers = new MultiValueMapImpl<>();
   }
 
   public Client request(final MediaType type) {
@@ -84,6 +93,9 @@ public final class Client {
     URL url = uri.toURL();
     final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
     urlConnection.setRequestProperty(HttpHeaders.CONTENT_TYPE, requestType.toString());
+    if (entity != null) {
+      urlConnection.setRequestMethod("POST");
+    }
 
     for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
       urlConnection.setRequestProperty(entry.getKey(), HeaderUtil.toCommaList(entry.getValue()));
@@ -94,15 +106,12 @@ public final class Client {
       final OutputStream outputStream = urlConnection.getOutputStream();
       final MessageBodyReaderWriter<Object> writer = provider.get(requestType);
       writer.writeTo(entity, entity.getClass(), null, new Annotation[0], requestType, new MultiValueMapImpl<String, Object>(), outputStream);
-      outputStream.flush();
     }
-
-    urlConnection.setDoInput(true);
 
     Response.ResponseBuilder responseBuilder = Response.created(uri);
     final int responseCode = urlConnection.getResponseCode();
     responseBuilder
-        .status(responseCode);
+            .status(responseCode);
 
     if (responseCode >= 200 && responseCode <= 299) {
 
@@ -112,23 +121,26 @@ public final class Client {
 
       final MessageBodyReaderWriter<Object> writer = provider.get(responseType);
       final Object o = writer.readFrom(acceptJavaType,
-                                       null,
-                                       new Annotation[0],
-                                       responseType,
-                                       HeaderUtil.toMap(urlConnection),
-                                       urlConnection.getInputStream());
+              null,
+              new Annotation[0],
+              responseType,
+              HeaderUtil.toMap(urlConnection),
+              urlConnection.getInputStream());
       responseBuilder
-          .entity(o)
-          .type(MediaType.valueOf(urlConnection.getContentType()));
+              .entity(o)
+              .type(MediaType.valueOf(urlConnection.getContentType()));
     } else {
       final String response = CharStreams.toString(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
       responseBuilder
-          .entity(response)
-          .status(responseCode)
-          .type(MediaType.TEXT_PLAIN);
+              .entity(response)
+              .status(responseCode)
+              .type(MediaType.TEXT_PLAIN);
     }
 
-    return responseBuilder.build();
+    Response build = responseBuilder.build();
+
+    reset();
+    return build;
   }
 
 }
