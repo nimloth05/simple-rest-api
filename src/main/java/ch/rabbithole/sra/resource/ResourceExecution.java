@@ -3,6 +3,7 @@ package ch.rabbithole.sra.resource;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
+import com.sun.ws.rs.ext.MultiValueMapImpl;
 import com.sun.ws.rs.ext.ResponseImpl;
 
 import java.io.ByteArrayOutputStream;
@@ -181,10 +182,16 @@ public final class ResourceExecution {
         } catch (WebApplicationException e) {
           log.log(Level.SEVERE, "Error during response processing", e);
           log.severe("Error during writing response: " + e);
-          resp.sendError(e.getResponse().getStatus(), e.getResponse().getEntity().toString());
+//          resp.sendError(e.getResponse().getStatus(), e.getResponse().getEntity().toString());
+          resp.setStatus(e.getResponse().getStatus());
+          writeToOutputStream(resp, e.getResponse().getEntity().toString(), createTextPlainContentTypeMultiMap());
+//          resp.getWriter().println(e.getResponse().getEntity().toString());
         }
       } else {
-        resp.sendError(response.getStatus(), entity != null ? entity.toString() : "");
+//        resp.sendError(response.getStatus(), entity != null ? entity.toString() : "");
+        resp.setStatus(response.getStatus());
+//        resp.getWriter().println(entity != null ? entity.toString() : "");
+        writeToOutputStream(resp, entity != null ? entity.toString() : "", createTextPlainContentTypeMultiMap());
       }
 
       if (metadata != null) {
@@ -202,6 +209,12 @@ public final class ResourceExecution {
     }
   }
 
+  private MultivaluedMap<String, Object> createTextPlainContentTypeMultiMap() {
+    MultiValueMapImpl<String, Object> result = new MultiValueMapImpl<>();
+    result.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
+    return result;
+  }
+
   private void writeToOutputStream(final HttpServletResponse resp, final Object entity, final MultivaluedMap<String, Object> metadata) throws IOException {
     MediaType contentType = MediaType.APPLICATION_JSON_TYPE;
     if (metadata.containsKey(HttpHeaders.CONTENT_TYPE)) {
@@ -211,6 +224,7 @@ public final class ResourceExecution {
     if (entity == null) {
       return;
     }
+
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     CountingOutputStream cos = new CountingOutputStream(bos);
     final MessageBodyReaderWriter<Object> writer = provider.get(contentType);

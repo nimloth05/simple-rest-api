@@ -38,6 +38,7 @@ public final class Client {
     reset();
   }
 
+  @SuppressWarnings("WeakerAccess")
   public void reset() {
     uri = null;
     requestType = MediaType.APPLICATION_JSON_TYPE;
