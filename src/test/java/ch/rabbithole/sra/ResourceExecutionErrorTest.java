@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 
 import ch.rabbithole.sra.resource.ResourceExecution;
 
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public final class ResourceExecutionErrorTest extends AbstractResourceTest {
@@ -29,9 +28,11 @@ public final class ResourceExecutionErrorTest extends AbstractResourceTest {
   public void testResourceMethodThrowsRuntimeException() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "npe"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "java.lang.NullPointerException: Error message");
+    assertBufferContent("java.lang.NullPointerException: Error message");
+    assertStatusCode(500);
   }
 
+  @SuppressWarnings("WeakerAccess")
   public static class ResourceClass {
 
     @Path("/npe")

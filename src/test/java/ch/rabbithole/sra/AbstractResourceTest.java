@@ -24,23 +24,23 @@ import static org.junit.Assert.assertEquals;
 /**
  * TODO JavaDoc
  */
-public class AbstractResourceTest {
+abstract class AbstractResourceTest {
 
-  protected HttpServletRequest requestMock;
-  protected HttpServletResponse responseMock;
-  protected StubServletOutputStream out;
+  HttpServletRequest requestMock;
+  HttpServletResponse responseMock;
+  StubServletOutputStream out;
 
-  protected ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
+  ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
     return new ResourceExecution(MessageBodyReaderWriterRegistry.createWithDefaults(), new ConstructorObjectFactory(), new Resource(method), uriInfo, requestMock, responseMock);
   }
 
-  protected Method getMethod(final Class<?> resourceClassClass,
-                             final String methodName,
-                             final Class... paramTypes) throws NoSuchMethodException {
+  Method getMethod(final Class<?> resourceClassClass,
+                   final String methodName,
+                   final Class... paramTypes) throws NoSuchMethodException {
     return resourceClassClass.getMethod(methodName, paramTypes);
   }
 
-  protected void assertBufferContent(final String expected) {
+  void assertBufferContent(final String expected) {
     try {
       String bufferContent = new String(out.baos.toByteArray(), "UTF-8");
       assertEquals(expected, bufferContent);
@@ -50,7 +50,11 @@ public class AbstractResourceTest {
     }
   }
 
-  protected UriInfoImpl createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
+  void assertStatusCode(final int statusCode) {
+    Mockito.verify(responseMock).setStatus(statusCode);
+  }
+
+  UriInfoImpl createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
     return new UriInfoImpl("",
                            ResourcePath.empty(),
                            ResourcePath.empty(),
@@ -59,7 +63,7 @@ public class AbstractResourceTest {
                            new MultiValueMapImpl<String, String>());
   }
 
-  protected UriInfoImpl createEmptyInfo() {
+  UriInfoImpl createEmptyInfo() {
     return createUrlInfoWithQueryParams(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
   }
 }

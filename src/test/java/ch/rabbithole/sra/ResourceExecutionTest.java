@@ -6,7 +6,6 @@ import com.sun.ws.rs.ext.MultiValueMapImpl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -43,9 +42,6 @@ import ch.rabbithole.sra.resource.ResourcePath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.AdditionalMatchers.eq;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -123,14 +119,16 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
   public void testWebApplicationExceptionHandling() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "getWebApplicationException"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).sendError(Matchers.eq(HttpServletResponse.SC_NOT_FOUND), (String) anyObject());
+    assertBufferContent("");
+    assertStatusCode(HttpServletResponse.SC_NOT_FOUND);
   }
 
   @Test
   public void testExceptionGeneratesAnInternalServerError() throws NoSuchMethodException, IOException {
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "getException"), createEmptyInfo());
     resource.execute();
-    verify(responseMock).sendError(Matchers.eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), (String) anyObject());
+    assertBufferContent("java.lang.RuntimeException: Error");
+    assertStatusCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
   }
 
   @Test
@@ -264,6 +262,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
                            pathParams);
   }
 
+  @SuppressWarnings("WeakerAccess")
   public static class ResourceClass {
 
     @Context
@@ -403,6 +402,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
   }
 
 
+  @SuppressWarnings("WeakerAccess")
   public static class ParamValue {
 
     @SuppressWarnings("unused")
