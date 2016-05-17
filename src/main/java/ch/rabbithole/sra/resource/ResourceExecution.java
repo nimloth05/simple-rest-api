@@ -182,15 +182,11 @@ public final class ResourceExecution {
         } catch (WebApplicationException e) {
           log.log(Level.SEVERE, "Error during response processing", e);
           log.severe("Error during writing response: " + e);
-//          resp.sendError(e.getResponse().getStatus(), e.getResponse().getEntity().toString());
           resp.setStatus(e.getResponse().getStatus());
           writeToOutputStream(resp, e.getResponse().getEntity().toString(), createTextPlainContentTypeMultiMap());
-//          resp.getWriter().println(e.getResponse().getEntity().toString());
         }
       } else {
-//        resp.sendError(response.getStatus(), entity != null ? entity.toString() : "");
         resp.setStatus(response.getStatus());
-//        resp.getWriter().println(entity != null ? entity.toString() : "");
         writeToOutputStream(resp, entity != null ? entity.toString() : "", createTextPlainContentTypeMultiMap());
       }
 

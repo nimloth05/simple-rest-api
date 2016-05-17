@@ -15,6 +15,7 @@ import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterRegistry;
 
+@SuppressWarnings("WeakerAccess")
 @Singleton
 public abstract class DispatchServlet extends HttpServlet {
 
@@ -39,41 +40,21 @@ public abstract class DispatchServlet extends HttpServlet {
 
   @Override
   protected void doDelete(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-//    super.doDelete(req, resp);
-//    if (resp.isCommitted()) {
-//      return;
-//    }
-
     configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.DELETE, req, resp);
   }
 
   @Override
   protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-//    super.doGet(req, resp);
-//    if (resp.isCommitted()) {
-//      return;
-//    }
-
     configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.GET, req, resp);
   }
 
   @Override
   protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-//    super.doPost(req, resp);
-//    if (resp.isCommitted()) {
-//      return;
-//    }
-
     configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.POST, req, resp);
   }
 
   @Override
   protected void doPut(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-//    super.doPut(req, resp);
-//    if (resp.isCommitted()) {
-//      return;
-//    }
-
     configuration.executeResource(readerWriterRegistry, objectFactory, HttpVerb.PUT, req, resp);
   }
 
