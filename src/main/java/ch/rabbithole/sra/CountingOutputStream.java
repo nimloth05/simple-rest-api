@@ -4,6 +4,8 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.Nonnull;
+
 public final class CountingOutputStream extends FilterOutputStream {
 
   private long transferred;
@@ -13,7 +15,7 @@ public final class CountingOutputStream extends FilterOutputStream {
     this.transferred = 0;
   }
 
-  public void write(byte[] b, int off, int len) throws IOException {
+  public void write(@Nonnull byte[] b, int off, int len) throws IOException {
     out.write(b, off, len);
     this.transferred += len;
   }
@@ -25,5 +27,9 @@ public final class CountingOutputStream extends FilterOutputStream {
 
   public long getTransferred() {
     return transferred;
+  }
+
+  public OutputStream getUnderlyingStream() {
+    return out;
   }
 }

@@ -170,9 +170,10 @@ public final class ResourceExecution {
       MultivaluedMap<String, Object> metadata = response.getMetadata();
 
       final Object entity = response.getEntity();
+      CountingOutputStream cos;
       if (response.getStatus() >= 200 && response.getStatus() <= 399) {
         try {
-          writeToOutputStream(resp, entity, metadata);
+          cos = writeEntity(entity, metadata);
           resp.setStatus(response.getStatus());
 
           Object contentType = metadata.getFirst(HttpHeaders.CONTENT_TYPE);
@@ -183,11 +184,11 @@ public final class ResourceExecution {
           log.log(Level.SEVERE, "Error during response processing", e);
           log.severe("Error during writing response: " + e);
           resp.setStatus(e.getResponse().getStatus());
-          writeToOutputStream(resp, e.getResponse().getEntity().toString(), createTextPlainContentTypeMultiMap());
+          cos = writeEntity(e.getResponse().getEntity().toString(), createTextPlainContentTypeMultiMap());
         }
       } else {
         resp.setStatus(response.getStatus());
-        writeToOutputStream(resp, entity != null ? entity.toString() : "", createTextPlainContentTypeMultiMap());
+        cos = writeEntity(entity != null ? entity.toString() : "", createTextPlainContentTypeMultiMap());
       }
 
       if (metadata != null) {
@@ -200,6 +201,7 @@ public final class ResourceExecution {
           resp.setHeader(headerKey, headerString);
         }
       }
+      writeToResponse(cos);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -211,24 +213,26 @@ public final class ResourceExecution {
     return result;
   }
 
-  private void writeToOutputStream(final HttpServletResponse resp, final Object entity, final MultivaluedMap<String, Object> metadata) throws IOException {
+  private CountingOutputStream writeEntity(final Object entity, final MultivaluedMap<String, Object> metadata) throws IOException {
     MediaType contentType = MediaType.APPLICATION_JSON_TYPE;
     if (metadata.containsKey(HttpHeaders.CONTENT_TYPE)) {
       contentType = MediaType.valueOf(metadata.getFirst(HttpHeaders.CONTENT_TYPE).toString());
     }
 
-    if (entity == null) {
-      return;
-    }
-
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     CountingOutputStream cos = new CountingOutputStream(bos);
-    final MessageBodyReaderWriter<Object> writer = provider.get(contentType);
-    writer.writeTo(entity, entity.getClass(), null, resource.getAnnotations(), contentType, metadata, cos);
+    if (entity != null) {
+      final MessageBodyReaderWriter<Object> writer = provider.get(contentType);
+      writer.writeTo(entity, entity.getClass(), null, resource.getAnnotations(), contentType, metadata, cos);
+    }
 
+    return cos;
+  }
+
+  private void writeToResponse(final CountingOutputStream cos) throws IOException {
     resp.setContentLength((int) cos.getTransferred());
     OutputStream os = resp.getOutputStream();
-    os.write(bos.toByteArray());
+    os.write(((ByteArrayOutputStream) cos.getUnderlyingStream()).toByteArray());
     os.close();
   }
 
