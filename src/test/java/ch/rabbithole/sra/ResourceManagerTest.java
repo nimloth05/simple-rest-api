@@ -143,6 +143,17 @@ public final class ResourceManagerTest {
       return id1;
     }
 
+    /*
+    * All tests will fail if the ResourceManager has an error processing these
+     */
+    public void setRandomStuff() {
+
+    }
+
+    public String getRandomStuff() {
+      return "";
+    }
+
   }
 
 }

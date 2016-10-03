@@ -38,6 +38,9 @@ public final class ResourceManager {
     for (Method resourceMethod : methods) {
       if (Modifier.isPublic(resourceMethod.getModifiers()) && !Modifier.isStatic(resourceMethod.getModifiers())) {
         HttpVerb verb = HttpVerb.getVerb(resourceMethod);
+        if (verb == null) {
+          continue;
+        }
         final String subPath = getSubPath(resourceMethod);
         ResourcePath resourcePath = rootPath.addSubPath(ResourcePath.parse(subPath));
         Resource resource = new Resource(resourceMethod);
