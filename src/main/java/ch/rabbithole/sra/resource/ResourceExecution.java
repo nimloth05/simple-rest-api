@@ -1,23 +1,8 @@
 package ch.rabbithole.sra.resource;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-import com.sun.ws.rs.ext.ResponseImpl;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import ch.rabbithole.sra.HeaderUtil;
+import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -25,18 +10,17 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.RuntimeDelegate;
-
-import ch.rabbithole.sra.CountingOutputStream;
-import ch.rabbithole.sra.HeaderUtil;
-import ch.rabbithole.sra.impl.UriInfoImpl;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class ResourceExecution {
 
@@ -166,88 +150,7 @@ public final class ResourceExecution {
   }
 
   private void writeAnswer(final Response response) {
-    try {
-      MultivaluedMap<String, Object> metadata = response.getMetadata();
-
-      final Object entity = response.getEntity();
-      CountingOutputStream cos;
-      if (response.getStatus() >= 200 && response.getStatus() <= 399) {
-        try {
-          cos = writeEntity(entity, metadata);
-          resp.setStatus(response.getStatus());
-
-          Object contentType = metadata.getFirst(HttpHeaders.CONTENT_TYPE);
-          if (contentType != null) {
-            resp.setContentType(contentType.toString());
-          }
-        } catch (WebApplicationException e) {
-          log.log(Level.SEVERE, "Error during response processing", e);
-          log.severe("Error during writing response: " + e);
-          resp.setStatus(e.getResponse().getStatus());
-          cos = writeEntity(e.getResponse().getEntity().toString(), createTextPlainContentTypeMultiMap());
-        }
-      } else {
-        resp.setStatus(response.getStatus());
-        cos = writeEntity(entity != null ? entity.toString() : "", createTextPlainContentTypeMultiMap());
-      }
-
-      if (metadata != null) {
-        for (String headerKey : metadata.keySet()) {
-          List<Object> values = metadata.get(headerKey);
-          if (headerKey.equals(HttpHeaders.LOCATION)) {
-            values = toAbsoluteUrls(values);
-          }
-          final String headerString = ResponseImpl.getHeaderString(ResponseImpl.toListOfStrings(values));
-          resp.setHeader(headerKey, headerString);
-        }
-      }
-      writeToResponse(cos);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private MultivaluedMap<String, Object> createTextPlainContentTypeMultiMap() {
-    MultiValueMapImpl<String, Object> result = new MultiValueMapImpl<>();
-    result.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
-    return result;
-  }
-
-  private CountingOutputStream writeEntity(final Object entity, final MultivaluedMap<String, Object> metadata) throws IOException {
-    MediaType contentType = MediaType.APPLICATION_JSON_TYPE;
-    if (metadata.containsKey(HttpHeaders.CONTENT_TYPE)) {
-      contentType = MediaType.valueOf(metadata.getFirst(HttpHeaders.CONTENT_TYPE).toString());
-    }
-
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    CountingOutputStream cos = new CountingOutputStream(bos);
-    if (entity != null) {
-      final MessageBodyReaderWriter<Object> writer = provider.get(contentType);
-      writer.writeTo(entity, entity.getClass(), null, resource.getAnnotations(), contentType, metadata, cos);
-    }
-
-    return cos;
-  }
-
-  private void writeToResponse(final CountingOutputStream cos) throws IOException {
-    resp.setContentLength((int) cos.getTransferred());
-    OutputStream os = resp.getOutputStream();
-    os.write(((ByteArrayOutputStream) cos.getUnderlyingStream()).toByteArray());
-    os.close();
-  }
-
-  private List<Object> toAbsoluteUrls(List<Object> values) {
-    return Lists.transform(values, new Function<Object, Object>() {
-      @Override
-      public Object apply(Object o) {
-        final URI uri = URI.create(o.toString());
-        if (uri.isAbsolute()) {
-          return o;
-        }
-        return uriInfoImpl.getBaseUri().resolve(uri).toString();
-      }
-    });
-
+    new ResponseWriter(provider).writeResponse(resp, response, uriInfoImpl, resource.getAnnotations());
   }
 
   private Object[] buildMethodParams(final UriInfoImpl uriInfo) {
