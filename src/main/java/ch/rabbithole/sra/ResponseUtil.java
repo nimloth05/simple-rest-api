@@ -4,6 +4,7 @@ import com.sun.ws.rs.ext.MultiValueMapImpl;
 import com.sun.ws.rs.ext.RuntimeDelegateImpl;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -40,5 +41,28 @@ public final class ResponseUtil {
     MultiValueMapImpl<String, Object> result = new MultiValueMapImpl<>();
     result.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
     return result;
+  }
+
+  public static Response fromError(final Throwable e) {
+    WebApplicationException responseException = findCause(e);
+    if (responseException != null) {
+      return responseException.getResponse();
+    }
+    return Response
+            .status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(e.toString())
+            .build();
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  private static WebApplicationException findCause(final Throwable e) {
+    Throwable current = e;
+    while (!(current instanceof WebApplicationException)) {
+      if (current.getCause() == null) {
+        break;
+      }
+      current = current.getCause();
+    }
+    return current instanceof WebApplicationException ? ((WebApplicationException) current) : null;
   }
 }

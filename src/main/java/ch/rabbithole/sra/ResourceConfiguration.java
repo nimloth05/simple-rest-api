@@ -29,19 +29,15 @@ public final class ResourceConfiguration {
     return this;
   }
 
-  public void executeResource(final MessageBodyReaderWriterProvider readerWriterRegistry,
-                              final ObjectFactory factory,
-                              final HttpVerb verb,
-                              final HttpServletRequest req,
-                              final HttpServletResponse resp) {
+  void executeResource(final MessageBodyReaderWriterProvider readerWriterRegistry,
+                       final ObjectFactory factory,
+                       final HttpVerb verb,
+                       final HttpServletRequest req,
+                       final HttpServletResponse resp) {
     ResourcePath path = ResourcePath.parse(req.getPathInfo());
     ResourceExecutionBuilder builder = resources.getResource(path, verb);
 
     ResourceExecution resourceExecution = builder.build(readerWriterRegistry, factory, req, resp);
-    try {
-      resourceExecution.execute();
-    } catch (Exception e) {
-      throw new RuntimeException("Error during resource execution: " + path, e);
-    }
+    resourceExecution.execute();
   }
 }
