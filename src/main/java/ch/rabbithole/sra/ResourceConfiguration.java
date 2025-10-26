@@ -1,14 +1,13 @@
 package ch.rabbithole.sra;
 
-import java.util.Set;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.ResourcePath;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.Set;
 
 /**
  * Class containing the configuration of all the REST Api resources

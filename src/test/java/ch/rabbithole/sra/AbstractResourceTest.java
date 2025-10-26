@@ -1,7 +1,6 @@
 package ch.rabbithole.sra;
 
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
@@ -12,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.impl.UriInfoImplTest;
+import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.ConstructorObjectFactory;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
@@ -30,7 +29,7 @@ abstract class AbstractResourceTest {
   HttpServletResponse responseMock;
   StubServletOutputStream out;
 
-  ResourceExecution createResourceExecution(final Method method, final UriInfoImplTest uriInfo) {
+  ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
     return new ResourceExecution(MessageBodyReaderWriterRegistry.createWithDefaults(), new ConstructorObjectFactory(), new Resource(method), uriInfo, requestMock, responseMock);
   }
 
@@ -54,16 +53,16 @@ abstract class AbstractResourceTest {
     Mockito.verify(responseMock).setStatus(statusCode);
   }
 
-  UriInfoImplTest createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
-    return new UriInfoImplTest("",
+  UriInfoImpl createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
+    return new UriInfoImpl("",
                            ResourcePath.empty(),
                            ResourcePath.empty(),
                            ResourcePath.empty(),
                            queryParams,
-                           new MultiValueMapImpl<String, String>());
+                           new MultivaluedHashMap<>());
   }
 
-  UriInfoImplTest createEmptyInfo() {
-    return createUrlInfoWithQueryParams(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
+  UriInfoImpl createEmptyInfo() {
+    return createUrlInfoWithQueryParams(new MultivaluedHashMap<>(Collections.<String, String>emptyMap()));
   }
 }

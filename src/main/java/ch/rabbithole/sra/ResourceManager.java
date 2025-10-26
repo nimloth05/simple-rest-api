@@ -1,23 +1,21 @@
 package ch.rabbithole.sra;
 
-import com.sun.jersey.api.NotFoundException;
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.PathSegment;
-
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceNode;
 import ch.rabbithole.sra.resource.ResourcePath;
 import ch.rabbithole.sra.resource.ResourceTree;
+import com.sun.jersey.api.NotFoundException;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Manages all the available resources in a tree like structure.
@@ -53,7 +51,7 @@ public final class ResourceManager {
   @Nonnull
   public ResourceExecutionBuilder getResource(ResourcePath path, HttpVerb verb) {
     ResourceTree tree = rootTree;
-    MultivaluedMap<String, String> pathParams = new MultiValueMapImpl<>();
+    final var pathParams = new MultivaluedHashMap<String, String>();
     Resource resource = getNode(path.getPathSegments(), 0, verb, tree, pathParams);
 
     if (resource == null) {

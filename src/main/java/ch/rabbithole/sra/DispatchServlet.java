@@ -1,9 +1,9 @@
 package ch.rabbithole.sra;
 
+import ch.rabbithole.sra.resource.ObjectFactory;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterRegistry;
 import com.google.inject.Injector;
-
-import java.io.IOException;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletException;
@@ -11,9 +11,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import ch.rabbithole.sra.resource.ObjectFactory;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterRegistry;
+import java.io.IOException;
 
 @SuppressWarnings("WeakerAccess")
 @Singleton

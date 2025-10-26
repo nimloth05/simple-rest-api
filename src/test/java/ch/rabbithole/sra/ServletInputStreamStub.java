@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 
 /**
@@ -25,5 +26,20 @@ public final class ServletInputStreamStub extends ServletInputStream {
   @Override
   public int read() throws IOException {
     return inputStream.read();
+  }
+
+  @Override
+  public boolean isFinished() {
+    return false;
+  }
+
+  @Override
+  public boolean isReady() {
+    return true;
+  }
+
+  @Override
+  public void setReadListener(ReadListener readListener) {
+
   }
 }

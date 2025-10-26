@@ -2,13 +2,12 @@ package com.sun.ws.rs.ext;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import jakarta.ws.rs.core.MultivaluedMap;
 
 /**
  * Implementation of the {@link MultivaluedMap} interface.
@@ -41,6 +40,26 @@ public final class MultiValueMapImpl<K, V> implements MultivaluedMap<K, V> {
   public V getFirst(final K key) {
     List<V> vs = backingMap.get(key);
     return vs.isEmpty() ? null : vs.get(0);
+  }
+
+  @Override
+  public void addAll(K key, V... newValues) {
+    throw new RuntimeException("Not implemented");
+  }
+
+  @Override
+  public void addAll(K key, List<V> valueList) {
+    throw new RuntimeException("Not implemented");
+  }
+
+  @Override
+  public void addFirst(K key, V value) {
+    throw new RuntimeException("Not implemented");
+  }
+
+  @Override
+  public boolean equalsIgnoreValueOrder(MultivaluedMap<K, V> otherMap) {
+    throw new RuntimeException("Not implemented");
   }
 
   @Override

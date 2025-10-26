@@ -1,27 +1,18 @@
 package ch.rabbithole.sra.resource.message;
 
+import ch.rabbithole.sra.HeaderUtil;
 import com.google.common.io.CharStreams;
-
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.common.util.UrlUtils.UrlUtils;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.Map;
-
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-
-import ch.rabbithole.sra.HeaderUtil;
 
 /**
  * Encodes the given multi value map as form url encoded.
@@ -81,10 +72,10 @@ public final class FormParamMessageBodyReaderWriter implements MessageBodyReader
 
   @SuppressWarnings("unchecked")
   private MultivaluedMap<String, String> toMVM(final Map<String, String> map) {
-    if (map instanceof MultiValueMapImpl) {
+    if (map instanceof MultivaluedMap) {
       return (MultivaluedMap) map;
     }
-    MultiValueMapImpl<String, String> multiValueMap = new MultiValueMapImpl<>();
+    final var multiValueMap = new MultivaluedHashMap<String, String>();
     for (Map.Entry<String, String> entry : map.entrySet()) {
       multiValueMap.putSingle(entry.getKey(), entry.getValue());
     }

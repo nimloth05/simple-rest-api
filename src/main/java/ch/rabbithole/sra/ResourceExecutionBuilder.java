@@ -1,14 +1,13 @@
 package ch.rabbithole.sra;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.ObjectFactory;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 /**
  * TODO JavaDoc
@@ -47,6 +46,7 @@ public final class ResourceExecutionBuilder {
                                              request.getPathInfo(),
                                              request.getQueryString(),
                                              pathParams);
+    uriInfo.setMatchedResource(resource);
     return new ResourceExecution(readerWriterRegistry, factory, resource, uriInfo, request, response);
   }
 

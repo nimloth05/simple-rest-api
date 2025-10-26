@@ -1,16 +1,15 @@
 package ch.rabbithole.sra.resource;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import ch.rabbithole.sra.ObjectUtil;
 import ch.rabbithole.sra.impl.UriInfoImpl;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
 import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 
 public abstract class ParamType {
 

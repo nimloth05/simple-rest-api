@@ -1,11 +1,21 @@
 package ch.rabbithole.sra.resource;
 
+import ch.rabbithole.sra.CountingOutputStream;
+import ch.rabbithole.sra.HeaderUtil;
+import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-
-import com.sun.ws.rs.ext.MultiValueMapImpl;
 import com.sun.ws.rs.ext.ResponseImpl;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,25 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.annotation.Nonnull;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.ext.RuntimeDelegate;
-
-import ch.rabbithole.sra.CountingOutputStream;
-import ch.rabbithole.sra.HeaderUtil;
-import ch.rabbithole.sra.impl.UriInfoImpl;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 public final class ResourceExecution {
 
@@ -136,14 +127,14 @@ public final class ResourceExecution {
 
       String mediaType = mediaTypes[0];
       responseBuilder
-          .type(mediaType)
-          .entity(resultObject);
+              .type(mediaType)
+              .entity(resultObject);
 
     } else {
       //no produces annotation, assume json
       responseBuilder
-          .type(MediaType.APPLICATION_JSON_TYPE)
-          .entity(resultObject);
+              .type(MediaType.APPLICATION_JSON_TYPE)
+              .entity(resultObject);
     }
 
     return responseBuilder.build();
@@ -159,10 +150,10 @@ public final class ResourceExecution {
     writer.write(e.toString());
 
     return RuntimeDelegate.getInstance().createResponseBuilder()
-        .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-        .entity(writer.toString())
-        .type(MediaType.TEXT_PLAIN_TYPE)
-        .build();
+            .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            .entity(writer.toString())
+            .type(MediaType.TEXT_PLAIN_TYPE)
+            .build();
   }
 
   private void writeAnswer(final Response response) {
@@ -208,7 +199,7 @@ public final class ResourceExecution {
   }
 
   private MultivaluedMap<String, Object> createTextPlainContentTypeMultiMap() {
-    MultiValueMapImpl<String, Object> result = new MultiValueMapImpl<>();
+    final var result = new MultivaluedHashMap<String, Object>();
     result.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN);
     return result;
   }

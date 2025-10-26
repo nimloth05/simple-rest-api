@@ -1,7 +1,6 @@
 package ch.rabbithole.sra;
 
 import com.sun.ws.rs.ext.RuntimeDelegateImpl;
-
 import jakarta.ws.rs.core.Response;
 
 /**

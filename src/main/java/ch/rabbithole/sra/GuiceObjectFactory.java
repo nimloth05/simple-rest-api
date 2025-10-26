@@ -1,11 +1,9 @@
 package ch.rabbithole.sra;
 
+import ch.rabbithole.sra.resource.ObjectFactory;
 import com.google.inject.Injector;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-
-import ch.rabbithole.sra.resource.ObjectFactory;
 
 /**
  * Object factory with guice.

@@ -1,8 +1,10 @@
 package ch.rabbithole.sra.resource;
 
+import ch.rabbithole.sra.HeaderUtil;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 import com.google.common.io.CharStreams;
-
-import com.sun.ws.rs.ext.MultiValueMapImpl;
+import jakarta.ws.rs.core.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,15 +15,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-
-import ch.rabbithole.sra.HeaderUtil;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriter;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 
 public final class Client {
 
@@ -44,7 +37,7 @@ public final class Client {
     requestType = MediaType.APPLICATION_JSON_TYPE;
     responseType = MediaType.APPLICATION_JSON_TYPE;
     entity = null;
-    headers = new MultiValueMapImpl<>();
+    headers = new MultivaluedHashMap<>();
   }
 
   public Client request(final MediaType type) {
@@ -106,7 +99,7 @@ public final class Client {
       urlConnection.setDoOutput(true);
       final OutputStream outputStream = urlConnection.getOutputStream();
       final MessageBodyReaderWriter<Object> writer = provider.get(requestType);
-      writer.writeTo(entity, entity.getClass(), null, new Annotation[0], requestType, new MultiValueMapImpl<String, Object>(), outputStream);
+      writer.writeTo(entity, entity.getClass(), null, new Annotation[0], requestType, new MultivaluedHashMap<>(), outputStream);
     }
 
     Response.ResponseBuilder responseBuilder = Response.created(uri);

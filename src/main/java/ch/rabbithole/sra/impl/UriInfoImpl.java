@@ -1,22 +1,15 @@
 package ch.rabbithole.sra.impl;
 
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
+import ch.rabbithole.sra.resource.Resource;
+import ch.rabbithole.sra.resource.ResourcePath;
+import jakarta.ws.rs.core.*;
 import org.apache.cxf.common.util.UrlUtils.UrlUtils;
 
+import javax.annotation.Nonnull;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.PathSegment;
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
-
-import ch.rabbithole.sra.resource.Resource;
-import ch.rabbithole.sra.resource.ResourcePath;
 
 
 /**
@@ -32,7 +25,8 @@ public final class UriInfoImpl implements UriInfo {
   private ResourcePath resourcePath;
   private Resource matchedResource;
 
-  public UriInfoImpl(String domainPart, ResourcePath requestPath,
+  public UriInfoImpl(String domainPart,
+                     ResourcePath requestPath,
                      ResourcePath resourcePath,
                      ResourcePath basePath,
                      MultivaluedMap<String, String> queryParams,
@@ -47,16 +41,16 @@ public final class UriInfoImpl implements UriInfo {
     this.pathParams = pathParams;
   }
 
-  public static UriInfoImpl create(final String domainPart,
-                                   final String requestUri,
-                                   final String pathInfo,
+  public static UriInfoImpl create(final String domainPart, // scheme + :// + port
+                                   final String requestUri, // path part of the request
+                                   final String pathInfo, // path segments after the servlet itself was matched
                                    final String queryString,
                                    MultivaluedMap<String, String> pathParams) {
-    final ResourcePath requestPath = ResourcePath.parse(requestUri);
-    final ResourcePath resourcePath = ResourcePath.parse(pathInfo);
-    final ResourcePath basePath = requestPath.disjoint(resourcePath);
+    final ResourcePath requestPath = ResourcePath.parse(requestUri); // e.g. /a/b/c
+    final ResourcePath resourcePath = ResourcePath.parse(pathInfo); // e.g. c/
+    final ResourcePath basePath = requestPath.disjoint(resourcePath); // e.g. /a/b
 
-    final MultivaluedMap<String, String> queryParams = new MultiValueMapImpl<>(UrlUtils.parseQueryString(queryString));
+    final MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>(UrlUtils.parseQueryString(queryString));
 
     return new UriInfoImpl(domainPart, requestPath, resourcePath, basePath, queryParams, pathParams);
   }
@@ -130,7 +124,7 @@ public final class UriInfoImpl implements UriInfo {
 
   @Override
   public MultivaluedMap<String, String> getPathParameters(boolean decode) {
-    MultivaluedMap<String, String> values = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> values = new MultivaluedHashMap<>();
     if (pathParams.isEmpty()) {
       return values;
     }
@@ -155,8 +149,7 @@ public final class UriInfoImpl implements UriInfo {
   @Override
   @Nonnull
   public MultivaluedMap<String, String> getQueryParameters(boolean decode) {
-
-    MultivaluedMap<String, String> values = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> values = new MultivaluedHashMap<>();
     if (queryParams.isEmpty()) {
       return values;
     }
@@ -189,7 +182,7 @@ public final class UriInfoImpl implements UriInfo {
 
   @Override
   public URI resolve(URI uri) {
-    return null;
+    return this.getAbsolutePath().resolve(uri);
   }
 
   @Override

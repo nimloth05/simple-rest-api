@@ -1,13 +1,13 @@
 package ch.rabbithole.sra.impl;
 
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilderException;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Map;
-
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriBuilderException;
 
 /**
  * TODO JavaDoc
@@ -35,6 +35,11 @@ public final class UriBuilderImpl extends UriBuilder {
     this.sceme = uri.getScheme();
     this.path = uri.getPath();
     return this;
+  }
+
+  @Override
+  public UriBuilder uri(String uriTemplate) {
+    return null;
   }
 
   @Override
@@ -174,8 +179,43 @@ public final class UriBuilderImpl extends UriBuilder {
   }
 
   @Override
+  public UriBuilder resolveTemplate(String name, Object value) {
+    return null;
+  }
+
+  @Override
+  public UriBuilder resolveTemplate(String name, Object value, boolean encodeSlashInPath) {
+    return null;
+  }
+
+  @Override
+  public UriBuilder resolveTemplateFromEncoded(String name, Object value) {
+    return null;
+  }
+
+  @Override
+  public UriBuilder resolveTemplates(Map<String, Object> templateValues) {
+    return null;
+  }
+
+  @Override
+  public UriBuilder resolveTemplates(Map<String, Object> templateValues, boolean encodeSlashInPath) throws IllegalArgumentException {
+    return null;
+  }
+
+  @Override
+  public UriBuilder resolveTemplatesFromEncoded(Map<String, Object> templateValues) {
+    return null;
+  }
+
+  @Override
   public URI buildFromMap(Map<String, ? extends Object> values) throws IllegalArgumentException, UriBuilderException {
     return build(values);
+  }
+
+  @Override
+  public URI buildFromMap(Map<String, ?> values, boolean encodeSlashInPath) throws IllegalArgumentException, UriBuilderException {
+    return null;
   }
 
   @Override
@@ -198,7 +238,17 @@ public final class UriBuilderImpl extends UriBuilder {
   }
 
   @Override
+  public URI build(Object[] values, boolean encodeSlashInPath) throws IllegalArgumentException, UriBuilderException {
+    return null;
+  }
+
+  @Override
   public URI buildFromEncoded(Object... values) throws IllegalArgumentException, UriBuilderException {
     return build(values);
+  }
+
+  @Override
+  public String toTemplate() {
+    return "";
   }
 }

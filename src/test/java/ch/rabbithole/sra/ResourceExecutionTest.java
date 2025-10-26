@@ -1,9 +1,9 @@
 package ch.rabbithole.sra;
 
+import ch.rabbithole.sra.impl.UriInfoImpl;
 import com.google.gson.Gson;
 
-import com.sun.ws.rs.ext.MultiValueMapImpl;
-
+import jakarta.ws.rs.core.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -27,12 +27,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
 
 import ch.rabbithole.sra.impl.UriInfoImplTest;
 import ch.rabbithole.sra.resource.Client;
@@ -71,7 +65,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testCallWithPathParam() throws NoSuchMethodException {
-    MultivaluedMap<String, String> map = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
     map.putSingle("id", "anId");
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "getWithParam", String.class), createUrlInfoWithPathParams(map));
     resource.execute();
@@ -80,7 +74,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testQueryParam() throws NoSuchMethodException {
-    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> queryParamMap = new MultivaluedHashMap<>();
     queryParamMap.putSingle("param1", "value1");
     queryParamMap.putSingle("param2", "value2");
 
@@ -91,7 +85,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testWithJsonQueryParam() throws NoSuchMethodException {
-    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> queryParamMap = new MultivaluedHashMap<>();
     queryParamMap.putSingle("param1", "{'name': gandalf}");
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "getWithParam3", ParamValue.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
@@ -100,7 +94,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testQueryParamWithPrimitiveValueWithLong() throws NoSuchMethodException {
-    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> queryParamMap = new MultivaluedHashMap<>();
     queryParamMap.putSingle("param1", "100");
 
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "getWithParamWithLong", long.class), createUrlInfoWithQueryParams(queryParamMap));
@@ -141,7 +135,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testDontConvertStringPathParamToJson() throws NoSuchMethodException {
-    MultivaluedMap<String, String> map = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
     map.putSingle("value", "Hallo Welt");
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "pathParamAsString", String.class), createUrlInfoWithPathParams(map));
     resource.execute();
@@ -190,7 +184,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testGetQueryParamWithString() throws NoSuchMethodException {
-    MultiValueMapImpl<String, String> queryParamMap = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> queryParamMap = new MultivaluedHashMap<>();
     queryParamMap.putSingle("q", "1");
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "getQueryParamWithString", String.class), createUrlInfoWithQueryParams(queryParamMap));
     resource.execute();
@@ -222,7 +216,7 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
 
   @Test
   public void testPathParamAsLong() throws NoSuchMethodException {
-    MultiValueMapImpl<String, String> params = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> params = new MultivaluedHashMap<>();
     params.putSingle("id", "1");
     ResourceExecution resource = createResourceExecution(getMethod(ResourceClass.class, "pathParamAsLong", long.class), createUrlInfoWithPathParams(params));
     resource.execute();
@@ -253,12 +247,12 @@ public final class ResourceExecutionTest extends AbstractResourceTest {
     }
   }
 
-  private UriInfoImplTest createUrlInfoWithPathParams(final MultivaluedMap<String, String> pathParams) {
-    return new UriInfoImplTest("",
+  private UriInfoImpl createUrlInfoWithPathParams(final MultivaluedMap<String, String> pathParams) {
+    return new UriInfoImpl("",
                            ResourcePath.empty(),
                            ResourcePath.empty(),
                            ResourcePath.empty(),
-                           new MultiValueMapImpl<String, String>(),
+                           new MultivaluedHashMap<String, String>(),
                            pathParams);
   }
 

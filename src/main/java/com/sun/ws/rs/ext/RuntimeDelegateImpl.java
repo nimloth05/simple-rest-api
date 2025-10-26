@@ -1,13 +1,11 @@
 package com.sun.ws.rs.ext;
 
-import jakarta.ws.rs.core.Application;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.Variant;
+import ch.rabbithole.sra.impl.UriBuilderImpl;
+import jakarta.ws.rs.SeBootstrap;
+import jakarta.ws.rs.core.*;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 
-import ch.rabbithole.sra.impl.UriBuilderImpl;
+import java.util.concurrent.CompletionStage;
 
 /**
  * A simple implementation of a {@link RuntimeDelegate}
@@ -40,6 +38,31 @@ public final class RuntimeDelegateImpl extends RuntimeDelegate {
       return (HeaderDelegate<T>) new MediaTypeDelegate();
     }
     throw new RuntimeException("Header not supported: " + aClass);
+  }
+
+  @Override
+  public Link.Builder createLinkBuilder() {
+    return null;
+  }
+
+  @Override
+  public SeBootstrap.Configuration.Builder createConfigurationBuilder() {
+    return null;
+  }
+
+  @Override
+  public CompletionStage<SeBootstrap.Instance> bootstrap(Application application, SeBootstrap.Configuration configuration) {
+    return null;
+  }
+
+  @Override
+  public CompletionStage<SeBootstrap.Instance> bootstrap(Class<? extends Application> clazz, SeBootstrap.Configuration configuration) {
+    return null;
+  }
+
+  @Override
+  public EntityPart.Builder createEntityPartBuilder(String partName) throws IllegalArgumentException {
+    return null;
   }
 
 

@@ -1,10 +1,9 @@
 package ch.rabbithole.sra;
 
+import javax.annotation.Nonnull;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
-import javax.annotation.Nonnull;
 
 public final class CountingOutputStream extends FilterOutputStream {
 

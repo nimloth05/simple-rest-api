@@ -14,7 +14,6 @@ package ch.rabbithole.sra.impl;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
 import jakarta.ws.rs.ext.Provider;
-
 import org.apache.cxf.common.util.UrlUtils.UrlUtils;
 
 @Provider

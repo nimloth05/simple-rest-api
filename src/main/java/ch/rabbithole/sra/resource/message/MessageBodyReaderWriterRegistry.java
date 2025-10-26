@@ -1,9 +1,9 @@
 package ch.rabbithole.sra.resource.message;
 
+import jakarta.ws.rs.core.MediaType;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import jakarta.ws.rs.core.MediaType;
 
 /**
  * Registry for different message body writer/reader.

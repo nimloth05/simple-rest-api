@@ -1,22 +1,16 @@
 package ch.rabbithole.sra.resource.message;
 
+import ch.rabbithole.sra.HeaderUtil;
 import com.google.common.io.CharStreams;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.HeaderUtil;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 /**
  * TODO JavaDoc

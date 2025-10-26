@@ -1,6 +1,10 @@
 package ch.rabbithole.sra;
 
-import com.sun.ws.rs.ext.MultiValueMapImpl;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
@@ -8,11 +12,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 public final class HeaderUtil {
 
@@ -43,9 +42,8 @@ public final class HeaderUtil {
     httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, createMediaTypeWithEncoding(mediaType, charset));
   }
 
-  @SuppressWarnings("unchecked")
   public static MultivaluedMap<String, String> toMap(final HttpServletRequest request) {
-    MultiValueMapImpl<String, String> result = new MultiValueMapImpl<>();
+    MultivaluedMap<String, String> result = new MultivaluedHashMap<>();
 
     final Enumeration<String> headerNames = request.getHeaderNames();
     if (headerNames == null) {
@@ -61,9 +59,8 @@ public final class HeaderUtil {
     return result;
   }
 
-  @SuppressWarnings("unchecked")
   public static MultivaluedMap<String, String> toMap(final HttpURLConnection connection) {
-    MultiValueMapImpl<String, String> result = new MultiValueMapImpl<>();
+    final var result = new MultivaluedHashMap<String, String>();
 
     final Map<String, List<String>> headerFields = connection.getHeaderFields();
     for (Map.Entry<String, List<String>> entry : headerFields.entrySet()) {

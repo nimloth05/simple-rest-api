@@ -8,17 +8,13 @@
  */
 package org.apache.cxf.common.util.UrlUtils;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.logging.Logger;
-
-import jakarta.ws.rs.core.MultivaluedMap;
 
 /**
  * Utility class for decoding and encoding URLs

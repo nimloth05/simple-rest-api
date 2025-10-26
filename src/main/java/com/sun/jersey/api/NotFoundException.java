@@ -1,8 +1,7 @@
 package com.sun.jersey.api;
 
-import jakarta.ws.rs.WebApplicationException;
-
 import ch.rabbithole.sra.ResponseUtil;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * Exception for 404.

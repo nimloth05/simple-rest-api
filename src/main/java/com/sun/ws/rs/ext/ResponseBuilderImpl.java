@@ -1,18 +1,13 @@
 package com.sun.ws.rs.ext;
 
+import jakarta.ws.rs.core.*;
+
+import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
-import jakarta.ws.rs.core.CacheControl;
-import jakarta.ws.rs.core.EntityTag;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.NewCookie;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Variant;
+import java.util.Set;
 
 /**
  * Impl for {@link jakarta.ws.rs.core.Response.ResponseBuilder}
@@ -23,7 +18,7 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
   private Object entity;
   private Date lastModified;
   private String encoding;
-  private MultivaluedMap<String, Object> metadata = new MultiValueMapImpl<>();
+  private MultivaluedMap<String, Object> metadata = new MultivaluedHashMap<>();
   private String language;
   private URI uri;
   private Date expire;
@@ -45,9 +40,29 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
   }
 
   @Override
+  public Response.ResponseBuilder status(int status, String reasonPhrase) {
+    return null;
+  }
+
+  @Override
   public Response.ResponseBuilder entity(final Object entity) {
     this.entity = entity;
     return this;
+  }
+
+  @Override
+  public Response.ResponseBuilder entity(Object entity, Annotation[] annotations) {
+    return null;
+  }
+
+  @Override
+  public Response.ResponseBuilder allow(String... methods) {
+    return null;
+  }
+
+  @Override
+  public Response.ResponseBuilder allow(Set<String> methods) {
+    return null;
   }
 
   @Override
@@ -56,9 +71,19 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
   }
 
   @Override
+  public Response.ResponseBuilder encoding(String encoding) {
+    return null;
+  }
+
+  @Override
   public Response.ResponseBuilder header(final String s, final Object o) {
     metadata.putSingle(s, o);
     return this;
+  }
+
+  @Override
+  public Response.ResponseBuilder replaceAll(MultivaluedMap<String, Object> headers) {
+    return null;
   }
 
   @Override
@@ -128,8 +153,28 @@ public class ResponseBuilderImpl extends Response.ResponseBuilder {
   }
 
   @Override
+  public Response.ResponseBuilder variants(Variant... variants) {
+    return null;
+  }
+
+  @Override
   public Response.ResponseBuilder variants(final List<Variant> list) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Response.ResponseBuilder links(Link... links) {
+    return null;
+  }
+
+  @Override
+  public Response.ResponseBuilder link(URI uri, String rel) {
+    return null;
+  }
+
+  @Override
+  public Response.ResponseBuilder link(String uri, String rel) {
+    return null;
   }
 
 

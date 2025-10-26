@@ -1,9 +1,7 @@
 package ch.rabbithole.sra.resource;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
+import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
@@ -13,8 +11,9 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.impl.UriInfoImpl;
-import ch.rabbithole.sra.resource.message.MessageBodyReaderWriterProvider;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Wraps a method into a {@link ResourceNode}

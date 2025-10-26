@@ -1,7 +1,6 @@
 package ch.rabbithole.sra;
 
 import java.lang.reflect.Method;
-import java.util.jar.JarEntry;
 
 /**
  * Verb of the REST call.

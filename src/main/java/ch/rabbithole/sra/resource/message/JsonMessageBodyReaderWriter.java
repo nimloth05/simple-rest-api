@@ -1,21 +1,16 @@
 package ch.rabbithole.sra.resource.message;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-
+import ch.rabbithole.sra.HeaderUtil;
+import ch.rabbithole.sra.ObjectUtil;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.ObjectUtil;
-import ch.rabbithole.sra.HeaderUtil;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 /**
  * Implementation for converting objects from and to json.
