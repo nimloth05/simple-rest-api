@@ -1,7 +1,7 @@
 package com.sun.ws.rs.ext;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.RuntimeDelegate;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 
 /**
  * MediaType delegate impl

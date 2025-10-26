@@ -2,8 +2,8 @@ package ch.rabbithole.sra;
 
 import com.google.inject.Injector;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import ch.rabbithole.sra.resource.ObjectFactory;
 

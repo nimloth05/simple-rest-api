@@ -5,7 +5,7 @@ import com.sun.ws.rs.ext.MediaTypeDelegate;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import static org.junit.Assert.assertEquals;
 

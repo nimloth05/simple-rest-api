@@ -2,7 +2,7 @@ package ch.rabbithole.sra;
 
 import com.sun.ws.rs.ext.RuntimeDelegateImpl;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Util for Responses.

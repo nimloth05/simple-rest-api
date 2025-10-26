@@ -1,6 +1,6 @@
 package com.sun.jersey.api;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 import ch.rabbithole.sra.ResponseUtil;
 

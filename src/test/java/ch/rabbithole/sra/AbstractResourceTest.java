@@ -8,11 +8,11 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MultivaluedMap;
 
-import ch.rabbithole.sra.impl.UriInfoImpl;
+import ch.rabbithole.sra.impl.UriInfoImplTest;
 import ch.rabbithole.sra.resource.ConstructorObjectFactory;
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourceExecution;
@@ -30,7 +30,7 @@ abstract class AbstractResourceTest {
   HttpServletResponse responseMock;
   StubServletOutputStream out;
 
-  ResourceExecution createResourceExecution(final Method method, final UriInfoImpl uriInfo) {
+  ResourceExecution createResourceExecution(final Method method, final UriInfoImplTest uriInfo) {
     return new ResourceExecution(MessageBodyReaderWriterRegistry.createWithDefaults(), new ConstructorObjectFactory(), new Resource(method), uriInfo, requestMock, responseMock);
   }
 
@@ -54,8 +54,8 @@ abstract class AbstractResourceTest {
     Mockito.verify(responseMock).setStatus(statusCode);
   }
 
-  UriInfoImpl createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
-    return new UriInfoImpl("",
+  UriInfoImplTest createUrlInfoWithQueryParams(final MultivaluedMap<String, String> queryParams) {
+    return new UriInfoImplTest("",
                            ResourcePath.empty(),
                            ResourcePath.empty(),
                            ResourcePath.empty(),
@@ -63,7 +63,7 @@ abstract class AbstractResourceTest {
                            new MultiValueMapImpl<String, String>());
   }
 
-  UriInfoImpl createEmptyInfo() {
+  UriInfoImplTest createEmptyInfo() {
     return createUrlInfoWithQueryParams(new MultiValueMapImpl<>(Collections.<String, String>emptyMap()));
   }
 }

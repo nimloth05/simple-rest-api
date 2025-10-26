@@ -3,9 +3,9 @@ package ch.rabbithole.sra.resource;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import ch.rabbithole.sra.ObjectUtil;
 import ch.rabbithole.sra.impl.UriInfoImpl;

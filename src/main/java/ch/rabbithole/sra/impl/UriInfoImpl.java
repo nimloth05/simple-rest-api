@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 
 import ch.rabbithole.sra.resource.Resource;
 import ch.rabbithole.sra.resource.ResourcePath;
@@ -185,5 +185,15 @@ public final class UriInfoImpl implements UriInfo {
   @Override
   public List<Object> getMatchedResources() {
     return Collections.<Object>singletonList(matchedResource);
+  }
+
+  @Override
+  public URI resolve(URI uri) {
+    return null;
+  }
+
+  @Override
+  public URI relativize(URI uri) {
+    return null;
   }
 }

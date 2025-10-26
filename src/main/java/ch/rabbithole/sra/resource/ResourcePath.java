@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.PathSegment;
 
 import ch.rabbithole.sra.impl.PathSegmentImpl;
 

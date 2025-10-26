@@ -6,8 +6,8 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Map;
 
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriBuilderException;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilderException;
 
 /**
  * TODO JavaDoc

@@ -3,7 +3,7 @@ package ch.rabbithole.sra.resource.message;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * Registry for different message body writer/reader.
